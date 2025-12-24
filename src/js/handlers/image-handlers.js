@@ -47,27 +47,8 @@ export function setWorkMode(mode) {
     btn.classList.toggle('active', btn.dataset.mode === mode);
   });
 
-  // 기존 첨부 이미지 재처리
-  if (state.attachedImages.length > 0) {
-    reprocessAttachedImages();
-  }
-}
-
-// 첨부 이미지 재처리
-async function reprocessAttachedImages() {
-  const files = state.attachedImages.map(img => img.file);
-  state.attachedImages = [];
-
-  for (const file of files) {
-    try {
-      const processed = await processImage(file, state.workMode);
-      state.attachedImages.push(processed);
-    } catch (e) {
-      console.error('Image reprocessing failed:', e);
-    }
-  }
-
-  renderAttachedImages();
+  // 모드 픽셀 표시 업데이트
+  updateWorkModeDisplay();
 }
 
 // 파일 선택 핸들러
@@ -95,7 +76,7 @@ export async function addImages(files) {
     }
 
     try {
-      const processed = await processImage(file, state.workMode);
+      const processed = await processImage(file);
       state.attachedImages.push(processed);
     } catch (e) {
       showError(`이미지 처리 실패: ${file.name}`);

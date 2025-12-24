@@ -32,7 +32,7 @@ export async function callImageApi(prompt, apiKey, attachedImages = [], workMode
     if (img.base64) {
       parts.push({
         inlineData: {
-          mimeType: 'image/jpeg',
+          mimeType: img.mimeType || 'image/jpeg',
           data: img.base64
         }
       });

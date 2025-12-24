@@ -107,15 +107,23 @@ export const QUICK_PRESETS = {
   }
 };
 
+// 입력 이미지 자동 압축 설정 (work mode와 독립)
+export const INPUT_COMPRESSION = {
+  maxDimension: 2048,        // 최대 너비/높이 (입력 토큰 절감)
+  webpQuality: 0.85,         // WebP 품질 (85% = 시각적 무손실 수준)
+  jpegQuality: 0.90,         // 폴백 JPEG 품질
+  thumbnailSize: 100,
+  thumbnailQuality: 0.7,
+  preferWebP: true           // WebP 우선, 실패 시 JPEG
+};
+
 // 작업 모드 설정
 export const WORK_MODES = {
   explore: {
     id: 'explore',
     name: '탐색',
     icon: '🔍',
-    maxSize: 512,
-    quality: 0.6,
-    description: '빠른 변형 생성용 (512px, 60% 품질)',
+    description: '빠른 변형 생성용 (1K 출력)',
     // Gemini 3 Pro 모델용 설정
     imageSize: '1K',
     aspectRatio: '1:1'
@@ -124,9 +132,7 @@ export const WORK_MODES = {
     id: 'refine',
     name: '정제',
     icon: '✨',
-    maxSize: 1024,
-    quality: 0.8,
-    description: '세부 조정용 (1024px, 80% 품질)',
+    description: '세부 조정용 (2K 출력)',
     imageSize: '2K',
     aspectRatio: '1:1'
   },
@@ -134,9 +140,7 @@ export const WORK_MODES = {
     id: 'final',
     name: '최종',
     icon: '📸',
-    maxSize: null,
-    quality: 1.0,
-    description: '프로덕션 출력용 (원본 해상도)',
+    description: '프로덕션 출력용 (4K 출력)',
     imageSize: '4K',
     aspectRatio: '1:1'
   }

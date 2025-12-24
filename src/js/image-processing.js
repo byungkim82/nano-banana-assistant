@@ -1,11 +1,11 @@
 // ===== IMAGE PROCESSING MODULE =====
 
-import { WORK_MODES } from './config.js';
+import { INPUT_COMPRESSION } from './config.js';
 import { generateImageId } from './utils.js';
 
 // 이미지 처리 (리사이즈, 압축, 썸네일 생성)
-export async function processImage(file, mode) {
-  const config = WORK_MODES[mode];
+export async function processImage(file) {
+  const config = INPUT_COMPRESSION;
 
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -16,69 +16,69 @@ export async function processImage(file, mode) {
         const originalHeight = img.height;
         const originalSize = file.size;
 
-        // 최종 모드는 원본 유지 (하지만 base64로 변환)
-        if (!config.maxSize || (img.width <= config.maxSize && img.height <= config.maxSize)) {
-          // 리사이즈 불필요
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
+        // 리사이즈 판단 (maxDimension 초과 시 리사이즈)
+        const maxDim = config.maxDimension;
+        let newWidth, newHeight;
+        let needsResize = false;
 
-          const base64Full = canvas.toDataURL('image/jpeg', config.quality);
-          const base64Data = base64Full.split(',')[1];
-
-          // 썸네일 생성
-          const thumbnail = createThumbnail(img, img.width, img.height);
-
-          resolve({
-            id: generateImageId(),
-            file: file,
-            originalSize: originalSize,
-            processedSize: Math.round(base64Data.length * 0.75),
-            base64: base64Data,
-            thumbnail: thumbnail,
-            width: img.width,
-            height: img.height,
-            originalWidth: originalWidth,
-            originalHeight: originalHeight
-          });
+        if (img.width > maxDim || img.height > maxDim) {
+          needsResize = true;
+          const scale = maxDim / Math.max(img.width, img.height);
+          newWidth = Math.round(img.width * scale);
+          newHeight = Math.round(img.height * scale);
         } else {
-          // 리사이즈 필요
-          let newWidth, newHeight;
-          if (img.width > img.height) {
-            newWidth = config.maxSize;
-            newHeight = Math.round(img.height * (config.maxSize / img.width));
-          } else {
-            newHeight = config.maxSize;
-            newWidth = Math.round(img.width * (config.maxSize / img.height));
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = newWidth;
-          canvas.height = newHeight;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, newWidth, newHeight);
-
-          const base64Full = canvas.toDataURL('image/jpeg', config.quality);
-          const base64Data = base64Full.split(',')[1];
-
-          // 썸네일 생성
-          const thumbnail = createThumbnailFromCanvas(canvas, newWidth, newHeight);
-
-          resolve({
-            id: generateImageId(),
-            file: file,
-            originalSize: originalSize,
-            processedSize: Math.round(base64Data.length * 0.75),
-            base64: base64Data,
-            thumbnail: thumbnail,
-            width: newWidth,
-            height: newHeight,
-            originalWidth: originalWidth,
-            originalHeight: originalHeight
-          });
+          newWidth = img.width;
+          newHeight = img.height;
         }
+
+        // 캔버스에 이미지 그리기
+        const canvas = document.createElement('canvas');
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        const ctx = canvas.getContext('2d');
+
+        if (needsResize) {
+          ctx.drawImage(img, 0, 0, newWidth, newHeight);
+        } else {
+          ctx.drawImage(img, 0, 0);
+        }
+
+        // WebP 압축 시도, 실패 시 JPEG 폴백
+        let base64Full, mimeType;
+        try {
+          base64Full = canvas.toDataURL('image/webp', config.webpQuality);
+
+          // Verify WebP encoding succeeded
+          if (!base64Full.startsWith('data:image/webp')) {
+            throw new Error('WebP encoding failed');
+          }
+          mimeType = 'image/webp';
+        } catch (e) {
+          console.warn('WebP compression failed, using JPEG:', e);
+          base64Full = canvas.toDataURL('image/jpeg', config.jpegQuality);
+          mimeType = 'image/jpeg';
+        }
+
+        const base64Data = base64Full.split(',')[1];
+
+        // 썸네일 생성
+        const thumbnail = needsResize ?
+          createThumbnailFromCanvas(canvas, newWidth, newHeight) :
+          createThumbnail(img, img.width, img.height);
+
+        resolve({
+          id: generateImageId(),
+          file: file,
+          originalSize: originalSize,
+          processedSize: Math.round(base64Data.length * 0.75),
+          base64: base64Data,
+          mimeType: mimeType,
+          thumbnail: thumbnail,
+          width: newWidth,
+          height: newHeight,
+          originalWidth: originalWidth,
+          originalHeight: originalHeight
+        });
       };
       img.onerror = () => reject(new Error('이미지 로드 실패'));
       img.src = e.target.result;
