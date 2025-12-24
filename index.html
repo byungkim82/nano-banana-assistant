@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>나노 바나나 프롬프트 어시스턴트</title>
 
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <!-- CSS 파일들 -->
   <link rel="stylesheet" href="src/css/variables.css">
   <link rel="stylesheet" href="src/css/reset.css">
@@ -17,7 +22,10 @@
   <link rel="stylesheet" href="src/css/utilities.css">
 </head>
 <body>
-  <div id="app">
+  <!-- 스킵 네비게이션 -->
+  <a href="#templateForm" class="skip-link">메인 콘텐츠로 건너뛰기</a>
+
+  <div id="app" role="application" aria-label="나노 바나나 프롬프트 어시스턴트">
     <!-- 헤더 -->
     <header class="header">
       <h1 class="header-title">
@@ -25,6 +33,10 @@
         <span>나노 바나나 프롬프트 어시스턴트</span>
       </h1>
       <div class="header-actions">
+        <!-- 언어 토글 버튼 -->
+        <button id="localeToggle" class="btn btn-outline btn-icon" onclick="toggleLocale()" title="언어 전환 / Switch Language">
+          <span id="localeIcon">🇰🇷</span>
+        </button>
         <!-- Thinking 모드 토글 -->
         <div class="thinking-tooltip">
           <label id="thinkingToggle" class="thinking-toggle" onclick="toggleThinkingMode()">
@@ -46,6 +58,9 @@
           <span class="status-dot"></span>
           <span id="apiStatusText">API 미연결</span>
         </div>
+        <button class="btn btn-outline btn-icon" onclick="openHelp()" title="도움말 (Shift+?)">
+          ❓
+        </button>
         <button class="btn btn-secondary" onclick="openSettingsModal()">
           <span>⚙️</span>
           <span>API 설정</span>
@@ -128,7 +143,7 @@
       <!-- 프롬프트 빌더 패널 -->
       <div class="panel">
         <!-- 템플릿 탭 -->
-        <div class="template-tabs" id="templateTabs">
+        <div class="template-tabs" id="templateTabs" role="tablist" aria-label="프롬프트 템플릿 선택">
           <!-- JavaScript로 렌더링 -->
         </div>
 
@@ -169,7 +184,7 @@
             <button class="btn btn-outline" onclick="resetForm()">
               🔄 초기화
             </button>
-            <button class="btn btn-accent btn-lg" onclick="generateImage()" id="generateBtn">
+            <button class="btn btn-accent btn-lg" onclick="generateImage()" id="generateBtn" aria-label="AI로 이미지 생성">
               🎨 이미지 생성
             </button>
           </div>
@@ -258,10 +273,10 @@
     </div>
 
     <!-- API 설정 모달 -->
-    <div id="settingsModal" class="modal-overlay">
+    <div id="settingsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
       <div class="modal">
         <div class="modal-header">
-          <h2 class="modal-title">⚙️ API 설정</h2>
+          <h2 class="modal-title" id="settingsModalTitle">⚙️ API 설정</h2>
           <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
         </div>
         <div class="modal-body">
@@ -298,10 +313,10 @@
     </div>
 
     <!-- 프롬프트 히스토리 모달 -->
-    <div id="promptHistoryModal" class="modal-overlay">
+    <div id="promptHistoryModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="promptHistoryTitle">
       <div class="modal modal-lg">
         <div class="modal-header">
-          <h2 class="modal-title">📜 프롬프트 히스토리</h2>
+          <h2 class="modal-title" id="promptHistoryTitle">📜 프롬프트 히스토리</h2>
           <button class="modal-close" onclick="closePromptHistory()">&times;</button>
         </div>
         <div class="modal-body">
@@ -472,6 +487,50 @@
       </div>
     </div>
   </div>
+
+    <!-- 도움말 모달 -->
+    <div id="helpModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2 class="modal-title" id="helpModalTitle">❓ 도움말</h2>
+          <button class="modal-close" onclick="closeHelp()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="help-tabs">
+            <button class="help-tab active" data-tab="overview" onclick="setHelpTab('overview')">개요</button>
+            <button class="help-tab" data-tab="templates" onclick="setHelpTab('templates')">템플릿</button>
+            <button class="help-tab" data-tab="shortcuts" onclick="setHelpTab('shortcuts')">단축키</button>
+            <button class="help-tab" data-tab="tips" onclick="setHelpTab('tips')">팁</button>
+            <button class="help-tab" data-tab="faq" onclick="setHelpTab('faq')">FAQ</button>
+          </div>
+          <div class="help-content" id="helpContent">
+            <!-- JavaScript로 렌더링 -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeHelp()">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모바일 하단 네비게이션 -->
+  <nav class="mobile-nav" id="mobileNav">
+    <div class="mobile-nav-inner">
+      <button class="mobile-nav-btn" data-panel="attach" onclick="setActivePanel('attach')">
+        <span class="nav-icon">📎</span>
+        <span>첨부</span>
+      </button>
+      <button class="mobile-nav-btn active" data-panel="builder" onclick="setActivePanel('builder')">
+        <span class="nav-icon">✏️</span>
+        <span>빌더</span>
+      </button>
+      <button class="mobile-nav-btn" data-panel="result" onclick="setActivePanel('result')">
+        <span class="nav-icon">🖼️</span>
+        <span>결과</span>
+      </button>
+    </div>
+  </nav>
 
   <!-- ES Module 진입점 -->
   <script type="module" src="src/js/main.js"></script>

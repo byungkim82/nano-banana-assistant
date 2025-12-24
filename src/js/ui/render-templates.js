@@ -2,7 +2,7 @@
 
 import { TEMPLATES } from '../templates.js';
 import { state } from '../state.js';
-import { updatePromptPreview } from '../prompt-builder.js';
+import { updatePromptPreview, updatePromptPreviewImmediate } from '../prompt-builder.js';
 
 // 템플릿 탭 렌더링
 export function renderTemplateTabs() {
@@ -198,5 +198,6 @@ export function renderTemplateFields() {
     container.appendChild(group);
   });
 
-  updatePromptPreview();
+  // 템플릿 전환 시 즉시 업데이트
+  updatePromptPreviewImmediate();
 }

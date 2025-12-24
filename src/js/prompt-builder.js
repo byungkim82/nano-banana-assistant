@@ -2,6 +2,7 @@
 
 import { TEMPLATES } from './templates.js';
 import { state } from './state.js';
+import { debounce } from './utils.js';
 
 // 프롬프트 빌드
 export function buildPrompt(templateId, values) {
@@ -49,8 +50,8 @@ export function buildPrompt(templateId, values) {
   return prompt;
 }
 
-// 프롬프트 미리보기 업데이트
-export function updatePromptPreview() {
+// 프롬프트 미리보기 업데이트 (내부 함수)
+function _updatePromptPreview() {
   const prompt = buildPrompt(state.currentTemplate, state.fieldValues[state.currentTemplate]);
   const previewEl = document.getElementById('promptPreview');
 
@@ -63,6 +64,14 @@ export function updatePromptPreview() {
     previewEl.textContent = '필드를 입력하면 프롬프트가 생성됩니다.';
     previewEl.classList.add('empty');
   }
+}
+
+// 디바운싱된 프롬프트 미리보기 업데이트 (300ms)
+export const updatePromptPreview = debounce(_updatePromptPreview, 300);
+
+// 즉시 업데이트가 필요한 경우 (템플릿 전환 등)
+export function updatePromptPreviewImmediate() {
+  _updatePromptPreview();
 }
 
 // 프롬프트 복사

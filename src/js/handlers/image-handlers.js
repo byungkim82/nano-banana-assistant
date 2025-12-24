@@ -141,3 +141,85 @@ export function selectResultHistory(historyId) {
     // renderResult는 main.js에서 호출
   }
 }
+
+// ===== 이미지 드래그 앤 드롭 순서 변경 =====
+
+let draggedImageId = null;
+
+// 드래그 시작
+export function handleImageDragStart(event, imageId) {
+  draggedImageId = imageId;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', imageId);
+
+  // 드래그 중인 요소에 스타일 적용
+  const element = event.target.closest('.attached-thumb');
+  if (element) {
+    element.classList.add('dragging');
+  }
+}
+
+// 드래그 중
+export function handleImageDragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+
+  // 드롭 위치 표시
+  const thumbContainer = event.target.closest('.attached-thumb');
+  if (thumbContainer && !thumbContainer.classList.contains('dragging')) {
+    // 기존 드롭 인디케이터 제거
+    document.querySelectorAll('.attached-thumb.drag-over').forEach(el => {
+      el.classList.remove('drag-over');
+    });
+    thumbContainer.classList.add('drag-over');
+  }
+}
+
+// 드래그 영역 벗어남
+export function handleImageDragLeave(event) {
+  const thumbContainer = event.target.closest('.attached-thumb');
+  if (thumbContainer) {
+    thumbContainer.classList.remove('drag-over');
+  }
+}
+
+// 드롭
+export function handleImageDrop(event, targetImageId) {
+  event.preventDefault();
+
+  // 드롭 인디케이터 제거
+  document.querySelectorAll('.attached-thumb.drag-over').forEach(el => {
+    el.classList.remove('drag-over');
+  });
+
+  if (!draggedImageId || draggedImageId === targetImageId) {
+    return;
+  }
+
+  // 이미지 순서 변경
+  const draggedIndex = state.attachedImages.findIndex(img => img.id === draggedImageId);
+  const targetIndex = state.attachedImages.findIndex(img => img.id === targetImageId);
+
+  if (draggedIndex === -1 || targetIndex === -1) {
+    return;
+  }
+
+  // 배열에서 드래그된 이미지 제거 후 새 위치에 삽입
+  const [draggedImage] = state.attachedImages.splice(draggedIndex, 1);
+  state.attachedImages.splice(targetIndex, 0, draggedImage);
+
+  renderAttachedImages();
+}
+
+// 드래그 종료
+export function handleImageDragEnd(event) {
+  draggedImageId = null;
+
+  // 모든 드래그 관련 스타일 제거
+  document.querySelectorAll('.attached-thumb.dragging').forEach(el => {
+    el.classList.remove('dragging');
+  });
+  document.querySelectorAll('.attached-thumb.drag-over').forEach(el => {
+    el.classList.remove('drag-over');
+  });
+}

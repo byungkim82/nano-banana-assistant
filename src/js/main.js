@@ -2,7 +2,7 @@
 
 // Core modules
 import { state, initializeFieldValues } from './state.js';
-import { loadFromStorage, loadPromptHistory as loadPromptHistoryStorage, loadCustomTemplates as loadCustomTemplatesStorage, loadSettings } from './storage.js';
+import { loadFromStorage, loadSettings, loadResultHistory } from './storage.js';
 
 // UI modules
 import { renderTemplateTabs, renderTemplateFields } from './ui/render-templates.js';
@@ -15,7 +15,9 @@ import { handleTemplateChange, resetForm } from './handlers/template-handlers.js
 import {
   setWorkMode, handleFileSelect, addImages, selectAttachedImage,
   deleteAttachedImage, deleteSelectedImage, viewOriginalImage,
-  downloadImage, selectResultHistory
+  downloadImage, selectResultHistory,
+  handleImageDragStart, handleImageDragOver, handleImageDragLeave,
+  handleImageDrop, handleImageDragEnd
 } from './handlers/image-handlers.js';
 import {
   generateImage, copyPrompt, handleTranslateToggle, setPromptTab
@@ -48,6 +50,12 @@ import {
   addFieldOption, deleteFieldOption, saveTemplate, duplicateTemplate,
   deleteCustomTemplate, exportTemplate, insertFieldPlaceholder
 } from './features/custom-templates.js';
+import { initPerformance } from './features/performance.js';
+import { initResponsive, setActivePanel, navigateToPanel } from './features/responsive.js';
+import { initKeyboardShortcuts, getShortcutsList } from './features/keyboard-shortcuts.js';
+import { openHelp, closeHelp, setHelpTab } from './features/help-system.js';
+import { initTips, showTip, hideTip, dismissTip, disableAllTips, resetTips, toggleTips, triggerTip } from './features/tips-system.js';
+import { initI18n, setLocale, getLocale, t, toggleLocale, getAvailableLocales } from './features/i18n.js';
 
 // ===== Register Global Functions for onclick handlers =====
 window.handleTemplateChange = handleTemplateChange;
@@ -65,6 +73,13 @@ window.selectResultHistory = (historyId) => {
   selectResultHistory(historyId);
   renderResult();
 };
+
+// Image drag handlers
+window.handleImageDragStart = handleImageDragStart;
+window.handleImageDragOver = handleImageDragOver;
+window.handleImageDragLeave = handleImageDragLeave;
+window.handleImageDrop = handleImageDrop;
+window.handleImageDragEnd = handleImageDragEnd;
 
 // Generation handlers
 window.generateImage = generateImage;
@@ -129,11 +144,45 @@ window.deleteCustomTemplate = deleteCustomTemplate;
 window.exportTemplate = exportTemplate;
 window.insertFieldPlaceholder = insertFieldPlaceholder;
 
+// Responsive handlers
+window.setActivePanel = setActivePanel;
+window.navigateToPanel = navigateToPanel;
+
+// Keyboard shortcuts handlers
+window.getShortcutsList = getShortcutsList;
+
+// Help system handlers
+window.openHelp = openHelp;
+window.closeHelp = closeHelp;
+window.setHelpTab = setHelpTab;
+
+// Tips system handlers
+window.showTip = showTip;
+window.hideTip = hideTip;
+window.dismissTip = dismissTip;
+window.disableAllTips = disableAllTips;
+window.resetTips = resetTips;
+window.toggleTips = toggleTips;
+window.triggerTip = triggerTip;
+
+// i18n handlers
+window.setLocale = setLocale;
+window.getLocale = getLocale;
+window.t = t;
+window.toggleLocale = toggleLocale;
+window.getAvailableLocales = getAvailableLocales;
+
 // State access (for inline handlers)
 window.state = state;
 
 // ===== App Initialization =====
 function initApp() {
+  // 0. Initialize i18n first
+  initI18n();
+
+  // 0.1. Initialize performance optimizations
+  initPerformance();
+
   // 1. Initialize field values for all templates
   initializeFieldValues();
 
@@ -143,6 +192,8 @@ function initApp() {
   loadPromptHistory();
   loadCustomTemplates();
   loadThinkingMode();
+  loadResultHistory();
+  initTips();
 
   // 3. Test API connection if key exists
   if (savedApiKey) {
@@ -159,7 +210,10 @@ function initApp() {
   setupDragAndDrop();
 
   // 6. Setup keyboard shortcuts
-  setupKeyboardShortcuts();
+  initKeyboardShortcuts();
+
+  // 7. Initialize responsive layout
+  initResponsive();
 
   console.log('Nano Banana Assistant initialized');
 }
@@ -194,33 +248,6 @@ function setupDragAndDrop() {
   });
 }
 
-// Setup keyboard shortcuts
-function setupKeyboardShortcuts() {
-  document.addEventListener('keydown', (e) => {
-    // ESC to close modals
-    if (e.key === 'Escape') {
-      closeSettingsModal();
-      closeImageModal();
-      closePromptHistory();
-      closeCanvasGenerator();
-      closeTemplateEditor();
-    }
-
-    // Arrow keys for image modal navigation
-    if (state.imageModalIndex >= 0) {
-      if (e.key === 'ArrowLeft') {
-        navigateImageModal(-1);
-      } else if (e.key === 'ArrowRight') {
-        navigateImageModal(1);
-      }
-    }
-
-    // Ctrl/Cmd + Enter to generate
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      generateImage();
-    }
-  });
-}
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', initApp);

@@ -43,7 +43,12 @@ export const state = {
     baseSize: 1024,
     backgroundColor: '#FFFFFF',
     backgroundType: 'white' // 'white' | 'transparent' | 'custom'
-  }
+  },
+  // Phase 5 추가
+  theme: 'light', // 'light' | 'dark'
+  locale: 'ko', // 'ko' | 'en'
+  showTips: true,
+  dismissedTips: []
 };
 
 // 템플릿별 기본값 초기화

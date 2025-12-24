@@ -20,9 +20,15 @@ export function renderAttachedImages() {
   }
 
   grid.innerHTML = state.attachedImages.map((img, index) => `
-    <div class="thumbnail-item ${state.selectedImageId === img.id ? 'selected' : ''}"
-         onclick="selectAttachedImage('${img.id}')">
-      <img src="${img.thumbnail}" alt="첨부 ${index + 1}">
+    <div class="thumbnail-item attached-thumb ${state.selectedImageId === img.id ? 'selected' : ''}"
+         draggable="true"
+         onclick="selectAttachedImage('${img.id}')"
+         ondragstart="handleImageDragStart(event, '${img.id}')"
+         ondragover="handleImageDragOver(event)"
+         ondragleave="handleImageDragLeave(event)"
+         ondrop="handleImageDrop(event, '${img.id}')"
+         ondragend="handleImageDragEnd(event)">
+      <img src="${img.thumbnail}" alt="첨부 ${index + 1}" draggable="false">
       <span class="thumbnail-index">${index + 1}</span>
       <button class="thumbnail-delete" onclick="event.stopPropagation(); deleteAttachedImage('${img.id}')">&times;</button>
     </div>

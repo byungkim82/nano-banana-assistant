@@ -1,59 +1,167 @@
-/* ===== CSS 변수 ===== */
+/* ===== CSS 변수 - Cyberpunk Dark Theme ===== */
 :root {
-  /* Primary - 바나나 옐로우 */
-  --color-primary: #FFE135;
-  --color-primary-dark: #E6C200;
+  /* ========== 브랜드 컬러 ========== */
+  --color-primary: #FFE135;           /* 바나나 옐로우 - 메인 강조 */
+  --color-primary-hover: #FFD600;     /* 호버 시 더 진한 옐로우 */
+  --color-primary-active: #E6C200;    /* 클릭 시 */
+  --color-primary-glow: rgba(255, 225, 53, 0.4);  /* 글로우 효과 */
+  --color-primary-soft: rgba(255, 225, 53, 0.15); /* 배경용 연한 버전 */
+
+  /* 기존 호환용 */
+  --color-primary-dark: var(--color-primary-active);
   --color-primary-light: #FFF59D;
 
-  /* Secondary - 다크 그레이 */
-  --color-secondary: #2D3436;
-  --color-secondary-light: #636E72;
+  /* ========== 배경 컬러 ========== */
+  --color-bg-primary: #0D0D0D;        /* 최상위 배경 (거의 검정) */
+  --color-bg-secondary: #141414;      /* 메인 컨텐츠 영역 */
+  --color-bg-tertiary: #1A1A1A;       /* 카드/패널 배경 */
+  --color-bg-elevated: #222222;       /* 떠있는 요소 (모달, 드롭다운) */
+  --color-bg-hover: #2A2A2A;          /* 호버 상태 배경 */
 
-  /* Accent */
+  /* ========== 표면 컬러 (Glassmorphism) ========== */
+  --color-surface: rgba(30, 30, 30, 0.8);
+  --color-surface-light: rgba(45, 45, 45, 0.6);
+  --color-surface-border: rgba(255, 255, 255, 0.08);
+
+  /* ========== 텍스트 컬러 ========== */
+  --color-text-primary: #FFFFFF;      /* 주요 텍스트 */
+  --color-text-secondary: #A0A0A0;    /* 보조 텍스트 */
+  --color-text-muted: #666666;        /* 비활성/힌트 텍스트 */
+  --color-text-inverse: #0D0D0D;      /* 밝은 배경 위 텍스트 */
+
+  /* ========== Secondary 컬러 ========== */
+  --color-secondary: #E0E0E0;
+  --color-secondary-light: #B0B0B0;
+
+  /* ========== 상태 컬러 ========== */
+  --color-success: #00D68F;           /* 성공/완료 */
+  --color-success-bg: rgba(0, 214, 143, 0.15);
+  --color-warning: #FFB800;           /* 경고/진행중 */
+  --color-warning-bg: rgba(255, 184, 0, 0.15);
+  --color-error: #FF4757;             /* 오류 */
+  --color-error-bg: rgba(255, 71, 87, 0.15);
+  --color-info: #3B82F6;              /* 정보 */
+  --color-info-bg: rgba(59, 130, 246, 0.15);
+
+  /* ========== 보더 컬러 ========== */
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.2);
+  --color-border-focus: var(--color-primary);
+
+  /* ========== 악센트 컬러 ========== */
   --color-accent: #6C5CE7;
+  --color-accent-purple: #8B5CF6;
+  --color-accent-cyan: #06B6D4;
+  --color-accent-pink: #EC4899;
 
-  /* Status */
-  --color-success: #00B894;
-  --color-warning: #FDCB6E;
-  --color-error: #E17055;
+  /* ========== 타이포그래피 ========== */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --font-family: var(--font-sans);
 
-  /* Background */
-  --color-bg-primary: #FFFFFF;
-  --color-bg-secondary: #F8F9FA;
-  --color-bg-tertiary: #E9ECEF;
+  /* 폰트 크기 (새로운 체계) */
+  --text-xs: 0.6875rem;    /* 11px - 캡션, 라벨 */
+  --text-sm: 0.75rem;      /* 12px - 보조 텍스트 */
+  --text-base: 0.875rem;   /* 14px - 기본 본문 */
+  --text-md: 1rem;         /* 16px - 강조 본문 */
+  --text-lg: 1.125rem;     /* 18px - 소제목 */
+  --text-xl: 1.25rem;      /* 20px - 섹션 제목 */
+  --text-2xl: 1.5rem;      /* 24px - 페이지 제목 */
+  --text-3xl: 2rem;        /* 32px - 대형 헤딩 */
 
-  /* Text */
-  --color-text-primary: #212529;
-  --color-text-secondary: #6C757D;
-  --color-text-muted: #ADB5BD;
+  /* 기존 호환용 */
+  --font-size-xs: var(--text-xs);
+  --font-size-sm: var(--text-sm);
+  --font-size-base: var(--text-base);
+  --font-size-lg: var(--text-lg);
+  --font-size-xl: var(--text-xl);
+  --font-size-2xl: var(--text-2xl);
 
-  /* Border */
-  --color-border: #DEE2E6;
-  --color-border-focus: #6C5CE7;
+  /* 폰트 굵기 */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
 
-  /* Typography */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
+  /* 행간 */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
 
-  /* Spacing */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
+  /* 자간 */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
 
-  /* Border Radius */
+  /* ========== 간격 시스템 ========== */
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+
+  /* 기존 호환용 */
+  --spacing-xs: var(--space-1);
+  --spacing-sm: var(--space-2);
+  --spacing-md: var(--space-4);
+  --spacing-lg: var(--space-6);
+  --spacing-xl: var(--space-8);
+
+  /* ========== 테두리 반경 ========== */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+  /* ========== 그림자 ========== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5);
+
+  /* 특수 그림자 */
+  --shadow-glow-primary: 0 0 20px var(--color-primary-glow);
+  --shadow-glow-success: 0 0 20px rgba(0, 214, 143, 0.4);
+  --shadow-glow-error: 0 0 20px rgba(255, 71, 87, 0.4);
+
+  /* 인셋 그림자 */
+  --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+
+  /* ========== Z-Index 레이어 ========== */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-popover: 500;
+  --z-tooltip: 600;
+  --z-toast: 700;
+
+  /* ========== 애니메이션 ========== */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  --duration-fast: 0.1s;
+  --duration-normal: 0.15s;
+  --duration-slow: 0.3s;
+  --duration-slower: 0.5s;
+
+  /* 기존 호환용 */
+  --transition-theme: all 0.15s ease;
+
+  /* ========== 아이콘 크기 ========== */
+  --icon-xs: 12px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 32px;
 }

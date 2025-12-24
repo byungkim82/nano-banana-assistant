@@ -1,59 +1,335 @@
-/* ===== 반응형 ===== */
-@media (max-width: 1200px) {
+/* ===== 반응형 - Cyberpunk Dark Theme ===== */
+
+/* 태블릿 (768px - 1199px) */
+@media (max-width: 1199px) and (min-width: 768px) {
   .main-3col {
     grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
   }
+
+  /* 첨부 패널을 접을 수 있는 형태로 */
   .main-3col > .panel:first-child {
     grid-column: 1 / -1;
   }
+
+  .main-3col > .panel:first-child .panel-body {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  /* 썸네일 그리드 조정 */
+  .thumbnail-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
 }
 
-@media (max-width: 1024px) {
+/* 작은 태블릿 / 큰 모바일 (768px - 1023px) */
+@media (max-width: 1023px) {
   .main {
     grid-template-columns: 1fr;
   }
+
   .main-3col {
     grid-template-columns: 1fr;
   }
+
+  .header-title {
+    font-size: var(--text-lg);
+  }
+
+  .template-tabs {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .template-tab {
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-sm);
+  }
 }
 
-@media (max-width: 768px) {
+/* 모바일 (767px 이하) */
+@media (max-width: 767px) {
+  /* 헤더 */
   .header {
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--space-2);
     text-align: center;
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .header-title {
+    font-size: var(--text-base);
   }
 
   .header-actions {
     width: 100%;
     justify-content: center;
-  }
-
-  .main {
-    padding: var(--spacing-md);
-  }
-
-  .main-3col {
-    padding: var(--spacing-md);
-  }
-
-  .template-tabs {
-    justify-content: center;
-  }
-
-  .action-bar {
-    flex-direction: column;
-  }
-
-  .work-mode-bar {
     flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+
+  .header-actions .btn {
+    font-size: var(--text-sm);
+    padding: var(--space-1) var(--space-2);
+  }
+
+  /* 작업 모드 바 */
+  .work-mode-bar {
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .work-mode-label {
+    display: none;
+  }
+
+  .work-mode-buttons {
+    width: 100%;
     justify-content: center;
+  }
+
+  .work-mode-btn {
+    flex: 1;
+    padding: var(--space-1);
+    font-size: var(--text-xs);
+  }
+
+  .work-mode-btn .mode-name {
+    display: none;
   }
 
   .translate-toggle {
     margin-left: 0;
     width: 100%;
     justify-content: center;
-    margin-top: var(--spacing-sm);
+  }
+
+  /* 메인 레이아웃 */
+  .main {
+    padding: var(--space-2);
+    padding-bottom: 80px; /* 하단 네비게이션 공간 */
+  }
+
+  .main-3col {
+    padding: var(--space-2);
+    padding-bottom: 80px;
+  }
+
+  /* 패널 숨김 (모바일 네비게이션으로 전환) */
+  .main-3col > .panel {
+    display: none;
+  }
+
+  .main-3col > .panel.mobile-active {
+    display: block;
+  }
+
+  .panel-header {
+    padding: var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  .panel-body {
+    padding: var(--space-2);
+  }
+
+  /* 템플릿 탭 */
+  .template-tabs {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: var(--space-1);
+    padding: var(--space-1);
+  }
+
+  .template-tab {
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-xs);
+  }
+
+  .template-tab .icon {
+    margin-right: 2px;
+  }
+
+  /* 폼 요소 */
+  .form-group {
+    margin-bottom: var(--space-2);
+  }
+
+  .form-label {
+    font-size: var(--text-sm);
+  }
+
+  .form-input,
+  .form-textarea,
+  .form-select {
+    font-size: var(--text-base); /* 16px to prevent zoom on iOS */
+    padding: var(--space-2);
+  }
+
+  /* 액션 바 */
+  .action-bar {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .action-bar .btn {
+    width: 100%;
+  }
+
+  /* 결과 영역 */
+  .result-container {
+    min-height: 200px;
+  }
+
+  .result-placeholder {
+    padding: var(--space-6);
+  }
+
+  /* 편집 세션 */
+  .edit-session {
+    padding: var(--space-2);
+  }
+
+  .quick-presets {
+    padding: var(--space-2);
+  }
+
+  .preset-categories {
+    flex-wrap: wrap;
+  }
+
+  .preset-items {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 모달 */
+  .modal {
+    width: 95%;
+    max-height: 90vh;
+    margin: var(--space-4);
+  }
+
+  .modal-lg,
+  .modal-xl {
+    width: 95%;
+  }
+
+  .modal-header {
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .modal-body {
+    padding: var(--space-4);
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .modal-footer {
+    padding: var(--space-2) var(--space-4);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .modal-footer .btn {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  /* 이미지 모달 */
+  .image-modal-content {
+    padding: var(--space-2);
+  }
+
+  .image-modal-img {
+    max-height: 60vh;
+  }
+
+  .image-modal-nav {
+    padding: var(--space-2);
+    font-size: var(--text-lg);
+  }
+
+  .image-modal-actions {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .image-modal-actions .btn {
+    width: 100%;
+  }
+}
+
+/* 하단 모바일 네비게이션 */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-2);
+  z-index: var(--z-sticky);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.mobile-nav-inner {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.mobile-nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mobile-nav-btn .nav-icon {
+  font-size: 1.5rem;
+}
+
+.mobile-nav-btn.active {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.mobile-nav-btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 767px) {
+  .mobile-nav {
+    display: block;
+  }
+}
+
+/* 스와이프 힌트 */
+.swipe-hint {
+  display: none;
+  text-align: center;
+  padding: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 767px) {
+  .swipe-hint {
+    display: block;
   }
 }

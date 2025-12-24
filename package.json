@@ -1,0 +1,13 @@
+{
+  "name": "nano-banana-assistant",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Prompt assistant for Google Gemini image generation",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "npx serve ."
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

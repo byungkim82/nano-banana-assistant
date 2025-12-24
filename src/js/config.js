@@ -5,7 +5,11 @@ export const STORAGE_KEYS = {
   SETTINGS: 'nano_banana_settings',
   HISTORY: 'nano_banana_history',
   PROMPT_HISTORY: 'nano_banana_prompt_history',
-  CUSTOM_TEMPLATES: 'nano_banana_custom_templates'
+  CUSTOM_TEMPLATES: 'nano_banana_custom_templates',
+  RESULT_HISTORY: 'nano_banana_result_history',
+  DISMISSED_TIPS: 'nano_banana_dismissed_tips',
+  SHOW_TIPS: 'nano_banana_show_tips',
+  LOCALE: 'nano_banana_locale'
 };
 
 export const API_ENDPOINTS = {

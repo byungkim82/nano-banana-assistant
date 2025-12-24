@@ -7,6 +7,7 @@ import { buildPrompt, updatePromptPreview } from '../prompt-builder.js';
 import { renderResult } from '../ui/render-result.js';
 import { showError, hideError, generateResultId } from '../utils.js';
 import { THINKING_PREFIX } from '../config.js';
+import { addToResultHistory } from '../storage.js';
 
 // Thinking 프리픽스 적용
 export function applyThinkingPrefix(prompt) {
@@ -84,7 +85,7 @@ export async function generateImage() {
     const image = await callImageApi(finalPrompt, state.apiKey, state.attachedImages);
     state.generatedImage = image;
 
-    // 히스토리에 추가
+    // 히스토리에 추가 (LocalStorage에도 저장)
     const historyItem = {
       id: generateResultId(),
       prompt: prompt,
@@ -92,7 +93,7 @@ export async function generateImage() {
       image: image,
       timestamp: new Date().toISOString()
     };
-    state.resultHistory.push(historyItem);
+    addToResultHistory(historyItem);
     state.selectedResultId = historyItem.id;
 
     // 편집 세션 초기화 (새 이미지 생성 시 새 세션 시작)
