@@ -25,8 +25,8 @@
 
   /* ========== 텍스트 컬러 ========== */
   --color-text-primary: #FFFFFF;      /* 주요 텍스트 */
-  --color-text-secondary: #A0A0A0;    /* 보조 텍스트 */
-  --color-text-muted: #666666;        /* 비활성/힌트 텍스트 */
+  --color-text-secondary: #D0D0D0;    /* 보조 텍스트 */
+  --color-text-muted: #9B9B9B;        /* 비활성/힌트 텍스트 */
   --color-text-inverse: #0D0D0D;      /* 밝은 배경 위 텍스트 */
 
   /* ========== Secondary 컬러 ========== */

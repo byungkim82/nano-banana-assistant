@@ -1,6 +1,6 @@
 // ===== API MODULE =====
 
-import { API_ENDPOINTS, API_ERRORS } from './config.js';
+import { API_ENDPOINTS, API_ERRORS, IMAGE_MODELS, WORK_MODES } from './config.js';
 
 // API 키 테스트
 export async function testApiKey(apiKey) {
@@ -23,7 +23,7 @@ export async function testApiKey(apiKey) {
 }
 
 // 이미지 생성 API 호출
-export async function callImageApi(prompt, apiKey, attachedImages = []) {
+export async function callImageApi(prompt, apiKey, attachedImages = [], workMode = 'refine', selectedModel = 'gemini-3-pro-image-preview') {
   // 요청 파츠 구성
   const parts = [{ text: prompt }];
 
@@ -39,19 +39,38 @@ export async function callImageApi(prompt, apiKey, attachedImages = []) {
     }
   }
 
+  // 선택된 모델 정보 가져오기
+  const modelConfig = IMAGE_MODELS[selectedModel];
+  if (!modelConfig) {
+    throw new Error(`Unknown model: ${selectedModel}`);
+  }
+
+  // 요청 바디 기본 구조
+  const requestBody = {
+    contents: [{
+      parts: parts
+    }],
+    generationConfig: {
+      responseModalities: ['TEXT', 'IMAGE']
+    }
+  };
+
+  // gemini-3-pro-image-preview인 경우에만 imageConfig 추가
+  // gemini-2.5-flash-image는 imageConfig를 지원하지 않으므로 생략
+  if (modelConfig.supportsImageConfig) {
+    const modeConfig = WORK_MODES[workMode];
+    requestBody.generationConfig.imageConfig = {
+      aspectRatio: modeConfig.aspectRatio,
+      imageSize: modeConfig.imageSize
+    };
+  }
+
   const response = await fetch(
-    `${API_ENDPOINTS.IMAGE}?key=${apiKey}`,
+    `${modelConfig.endpoint}?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: parts
-        }],
-        generationConfig: {
-          responseModalities: ['TEXT', 'IMAGE']
-        }
-      })
+      body: JSON.stringify(requestBody)
     }
   );
 
@@ -62,7 +81,7 @@ export async function callImageApi(prompt, apiKey, attachedImages = []) {
 
   const data = await response.json();
 
-  // 응답에서 이미지 추출
+  // 응답에서 이미지 추출 (두 모델 모두 동일한 형식)
   if (data.candidates && data.candidates[0] && data.candidates[0].content) {
     const parts = data.candidates[0].content.parts;
     for (const part of parts) {

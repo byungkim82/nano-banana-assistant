@@ -1,6 +1,6 @@
 // ===== STORAGE =====
 
-import { STORAGE_KEYS } from './config.js';
+import { STORAGE_KEYS, IMAGE_MODELS } from './config.js';
 import { state } from './state.js';
 
 export function loadFromStorage() {
@@ -34,7 +34,8 @@ export function saveSettings() {
     const settings = {
       workMode: state.workMode,
       autoTranslate: state.autoTranslate,
-      thinkingMode: state.thinkingMode
+      thinkingMode: state.thinkingMode,
+      selectedModel: state.selectedModel
     };
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
   } catch (e) {
@@ -51,6 +52,9 @@ export function loadSettings() {
       if (settings.workMode) state.workMode = settings.workMode;
       if (settings.autoTranslate !== undefined) state.autoTranslate = settings.autoTranslate;
       if (settings.thinkingMode !== undefined) state.thinkingMode = settings.thinkingMode;
+      if (settings.selectedModel && IMAGE_MODELS[settings.selectedModel]) {
+        state.selectedModel = settings.selectedModel;
+      }
     }
   } catch (e) {
     console.error('Failed to load settings:', e);

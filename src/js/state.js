@@ -11,7 +11,8 @@ export const state = {
   isLoading: false,
   error: null,
   // Phase 2 추가
-  workMode: 'explore', // 'explore' | 'refine' | 'final'
+  selectedModel: 'gemini-3-pro-image-preview', // 'gemini-3-pro-image-preview' | 'gemini-2.5-flash-image'
+  workMode: 'refine', // 'explore' | 'refine' | 'final' (기본값 refine=2K)
   attachedImages: [], // { id, file, originalSize, processedSize, base64, thumbnail, width, height }
   selectedImageId: null,
   resultHistory: [], // { id, prompt, translatedPrompt, image: { mimeType, data }, timestamp }

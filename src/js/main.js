@@ -17,14 +17,14 @@ import {
   deleteAttachedImage, deleteSelectedImage, viewOriginalImage,
   downloadImage, selectResultHistory,
   handleImageDragStart, handleImageDragOver, handleImageDragLeave,
-  handleImageDrop, handleImageDragEnd
+  handleImageDrop, handleImageDragEnd, updateWorkModeDisplay
 } from './handlers/image-handlers.js';
 import {
   generateImage, copyPrompt, handleTranslateToggle, setPromptTab
 } from './handlers/generation-handlers.js';
 import {
   openSettingsModal, closeSettingsModal, toggleApiKeyVisibility,
-  testApiConnection, saveApiKey, openImageModal, closeImageModal,
+  testApiConnection, saveApiKey, handleModelSelect, openImageModal, closeImageModal,
   navigateImageModal, downloadModalImage, reusePrompt
 } from './handlers/modal-handlers.js';
 import {
@@ -93,6 +93,7 @@ window.closeSettingsModal = closeSettingsModal;
 window.toggleApiKeyVisibility = toggleApiKeyVisibility;
 window.testApiConnection = testApiConnection;
 window.saveApiKey = saveApiKey;
+window.handleModelSelect = handleModelSelect;
 window.openImageModal = openImageModal;
 window.closeImageModal = closeImageModal;
 window.navigateImageModal = navigateImageModal;
@@ -205,6 +206,7 @@ function initApp() {
   renderTemplateFields();
   renderResult();
   renderAttachedImages();
+  updateWorkModeDisplay(); // 작업 모드 픽셀 표시 업데이트
 
   // 5. Setup drag and drop for image upload
   setupDragAndDrop();

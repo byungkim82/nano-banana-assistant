@@ -48,8 +48,18 @@ nano-banana-assistant.html
 약 1208줄의 단순한 상태 객체. 속성: `apiKey`, `apiStatus`, `currentTemplate`, `fieldValues`, `generatedImage`, `isLoading`, `error`
 
 ### API 연동
-- 텍스트 엔드포인트 (API 키 테스트용): `gemini-2.5-flash:generateContent`
-- 이미지 엔드포인트: `gemini-2.0-flash-exp:generateContent` (`responseModalities: ['TEXT', 'IMAGE']`)
+- **텍스트 엔드포인트** (번역용): `gemini-2.0-flash:generateContent`
+- **이미지 생성 모델 (2개 지원)**:
+  - `gemini-3-pro-image-preview` (기본값, Nano Banana Pro)
+    - 2K/4K 고해상도 지원
+    - 향상된 텍스트 렌더링
+    - 작업 모드별 해상도: 탐색=1K, 정제=2K, 최종=4K
+    - aspectRatio: 1:1 고정
+  - `gemini-2.5-flash-image` (기존, Nano Banana)
+    - 안정적인 성능
+    - imageConfig 미지원
+- 설정 모달에서 모델 선택 가능
+- 모델 선택은 LocalStorage에 저장
 
 ### CSS 디자인 시스템
 `:root`에 정의된 CSS 변수 (약 9줄):

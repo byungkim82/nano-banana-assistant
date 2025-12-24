@@ -16,3 +16,5 @@ package-lock.json
 
 /dist/
 .env
+dist/nano-banana-assistant.html
+/dist

@@ -145,7 +145,13 @@ Previous prompt for context: ${currentItem.prompt}`;
       base64: currentItem.image.data
     }];
 
-    const image = await callImageApi(finalPrompt, state.apiKey, attachments);
+    const image = await callImageApi(
+      finalPrompt,
+      state.apiKey,
+      attachments,
+      state.workMode,
+      state.selectedModel
+    );
     state.generatedImage = image;
 
     // 편집 히스토리에 추가

@@ -2,16 +2,20 @@
 
 import { state } from '../state.js';
 import { testApiKey } from '../api.js';
-import { saveToStorage } from '../storage.js';
+import { saveToStorage, saveSettings } from '../storage.js';
 import { showError, hideError } from '../utils.js';
+import { IMAGE_MODELS } from '../config.js';
+import { updateWorkModeDisplay } from './image-handlers.js';
 
 // 설정 모달 열기
 export function openSettingsModal() {
   const modal = document.getElementById('settingsModal');
   const apiKeyInput = document.getElementById('apiKeyInput');
+  const modelSelect = document.getElementById('modelSelect');
 
   if (modal) modal.classList.add('active');
   if (apiKeyInput) apiKeyInput.value = state.apiKey;
+  if (modelSelect) modelSelect.value = state.selectedModel;
 }
 
 // 설정 모달 닫기
@@ -105,6 +109,18 @@ export function saveApiKey() {
   }
 
   closeSettingsModal();
+}
+
+// 모델 선택 핸들러
+export function handleModelSelect(modelId) {
+  if (IMAGE_MODELS[modelId]) {
+    state.selectedModel = modelId;
+    saveSettings();
+    updateWorkModeDisplay(); // 작업 모드 픽셀 표시 업데이트
+    console.log(`Model changed to: ${modelId}`);
+  } else {
+    console.error(`Unknown model: ${modelId}`);
+  }
 }
 
 // API 상태 업데이트

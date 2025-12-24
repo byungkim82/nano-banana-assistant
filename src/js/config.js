@@ -13,9 +13,33 @@ export const STORAGE_KEYS = {
 };
 
 export const API_ENDPOINTS = {
-  TEXT: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-  IMAGE: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent'
+  TEXT: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+  // IMAGE 엔드포인트는 IMAGE_MODELS로 분리
 };
+
+// 이미지 생성 모델 설정
+export const IMAGE_MODELS = {
+  'gemini-3-pro-image-preview': {
+    id: 'gemini-3-pro-image-preview',
+    name: 'Gemini 3 Pro (권장)',
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent',
+    supportsImageConfig: true,
+    supportsResponseModalities: true,
+    maxImages: 14,
+    description: '2K/4K 고해상도, 향상된 텍스트 렌더링'
+  },
+  'gemini-2.5-flash-image': {
+    id: 'gemini-2.5-flash-image',
+    name: 'Gemini 2.5 Flash Image (기존)',
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent',
+    supportsImageConfig: false,
+    supportsResponseModalities: true,
+    maxImages: 14,
+    description: '기존 모델 (Nano Banana), 안정적인 성능'
+  }
+};
+
+export const DEFAULT_IMAGE_MODEL = 'gemini-3-pro-image-preview';
 
 export const API_ERRORS = {
   400: '잘못된 요청입니다. 프롬프트를 확인해주세요.',
@@ -91,7 +115,10 @@ export const WORK_MODES = {
     icon: '🔍',
     maxSize: 512,
     quality: 0.6,
-    description: '빠른 변형 생성용 (512px, 60% 품질)'
+    description: '빠른 변형 생성용 (512px, 60% 품질)',
+    // Gemini 3 Pro 모델용 설정
+    imageSize: '1K',
+    aspectRatio: '1:1'
   },
   refine: {
     id: 'refine',
@@ -99,7 +126,9 @@ export const WORK_MODES = {
     icon: '✨',
     maxSize: 1024,
     quality: 0.8,
-    description: '세부 조정용 (1024px, 80% 품질)'
+    description: '세부 조정용 (1024px, 80% 품질)',
+    imageSize: '2K',
+    aspectRatio: '1:1'
   },
   final: {
     id: 'final',
@@ -107,7 +136,9 @@ export const WORK_MODES = {
     icon: '📸',
     maxSize: null,
     quality: 1.0,
-    description: '프로덕션 출력용 (원본 해상도)'
+    description: '프로덕션 출력용 (원본 해상도)',
+    imageSize: '4K',
+    aspectRatio: '1:1'
   }
 };
 

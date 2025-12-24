@@ -4,6 +4,39 @@ import { state } from '../state.js';
 import { processImage } from '../image-processing.js';
 import { renderAttachedImages } from '../ui/render-images.js';
 import { showError } from '../utils.js';
+import { IMAGE_MODELS, WORK_MODES } from '../config.js';
+
+// 작업 모드 버튼 픽셀 표시 업데이트
+export function updateWorkModeDisplay() {
+  const selectedModelConfig = IMAGE_MODELS[state.selectedModel];
+  const supportsImageConfig = selectedModelConfig?.supportsImageConfig || false;
+
+  document.querySelectorAll('.work-mode-btn').forEach(btn => {
+    const mode = btn.dataset.mode;
+    const sizeEl = btn.querySelector('.mode-size');
+
+    if (!sizeEl || !mode) return;
+
+    if (supportsImageConfig) {
+      // Gemini 3 Pro: 1K, 2K, 4K
+      const modeConfig = WORK_MODES[mode];
+      sizeEl.textContent = modeConfig?.imageSize || '';
+    } else {
+      // Gemini 2.5 Flash: 512px, 1024px, 원본
+      switch (mode) {
+        case 'explore':
+          sizeEl.textContent = '512px';
+          break;
+        case 'refine':
+          sizeEl.textContent = '1024px';
+          break;
+        case 'final':
+          sizeEl.textContent = '원본';
+          break;
+      }
+    }
+  });
+}
 
 // 작업 모드 설정
 export function setWorkMode(mode) {
@@ -47,7 +80,8 @@ export async function handleFileSelect(event) {
 // 이미지 추가
 export async function addImages(files) {
   const validTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/jpg'];
-  const maxImages = 14;
+  const selectedModelConfig = IMAGE_MODELS[state.selectedModel];
+  const maxImages = selectedModelConfig?.maxImages || 14;
 
   for (const file of files) {
     if (state.attachedImages.length >= maxImages) {

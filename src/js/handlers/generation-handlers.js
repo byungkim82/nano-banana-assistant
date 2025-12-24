@@ -81,8 +81,14 @@ export async function generateImage() {
     // Thinking 모드 적용
     finalPrompt = applyThinkingPrefix(finalPrompt);
 
-    // 이미지 생성 API 호출 (첨부 이미지 포함)
-    const image = await callImageApi(finalPrompt, state.apiKey, state.attachedImages);
+    // 이미지 생성 API 호출 (첨부 이미지, 작업 모드, 선택된 모델 포함)
+    const image = await callImageApi(
+      finalPrompt,
+      state.apiKey,
+      state.attachedImages,
+      state.workMode,
+      state.selectedModel
+    );
     state.generatedImage = image;
 
     // 히스토리에 추가 (LocalStorage에도 저장)
