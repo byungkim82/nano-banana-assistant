@@ -1,0 +1,6082 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나노 바나나 프롬프트 어시스턴트</title>
+  <style>
+/* ===== variables.css ===== */
+/* ===== CSS 변수 ===== */
+:root {
+  /* Primary - 바나나 옐로우 */
+  --color-primary: #FFE135;
+  --color-primary-dark: #E6C200;
+  --color-primary-light: #FFF59D;
+
+  /* Secondary - 다크 그레이 */
+  --color-secondary: #2D3436;
+  --color-secondary-light: #636E72;
+
+  /* Accent */
+  --color-accent: #6C5CE7;
+
+  /* Status */
+  --color-success: #00B894;
+  --color-warning: #FDCB6E;
+  --color-error: #E17055;
+
+  /* Background */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F8F9FA;
+  --color-bg-tertiary: #E9ECEF;
+
+  /* Text */
+  --color-text-primary: #212529;
+  --color-text-secondary: #6C757D;
+  --color-text-muted: #ADB5BD;
+
+  /* Border */
+  --color-border: #DEE2E6;
+  --color-border-focus: #6C5CE7;
+
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+}
+
+
+/* ===== reset.css ===== */
+/* ===== 리셋 & 기본 ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  line-height: 1.6;
+}
+
+
+/* ===== layout.css ===== */
+/* ===== 레이아웃 ===== */
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 헤더 */
+.header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-md);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* 메인 컨텐츠 */
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 패널 */
+.panel {
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.panel-header {
+  background: var(--color-bg-tertiary);
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.panel-body {
+  padding: var(--spacing-lg);
+}
+
+/* ===== 작업 모드 바 ===== */
+.work-mode-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.work-mode-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.work-mode-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.work-mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+}
+
+.work-mode-btn:hover {
+  border-color: var(--color-accent);
+  background: var(--color-bg-secondary);
+}
+
+.work-mode-btn.active {
+  border-color: var(--color-accent);
+  background: rgba(108, 92, 231, 0.1);
+}
+
+.work-mode-btn .mode-icon {
+  font-size: var(--font-size-lg);
+}
+
+.work-mode-btn .mode-name {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.work-mode-btn .mode-size {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.translate-toggle {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.translate-toggle input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* ===== 3열 레이아웃 ===== */
+.main-3col {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  max-width: 1800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+
+/* ===== components.css ===== */
+/* ===== 버튼 ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-secondary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.btn-secondary {
+  background: var(--color-secondary);
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-secondary-light);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+}
+
+.btn-accent {
+  background: var(--color-accent);
+  color: white;
+}
+
+.btn-accent:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-lg {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-base);
+}
+
+.btn-icon {
+  padding: var(--spacing-sm);
+  min-width: 36px;
+}
+
+.btn-danger {
+  color: var(--color-error);
+}
+
+.btn-danger:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+/* ===== 폼 요소 ===== */
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.form-label .required {
+  color: var(--color-error);
+}
+
+.form-help {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-xs);
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+}
+
+.form-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.form-select {
+  cursor: pointer;
+  background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236C757D' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center;
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 36px;
+}
+
+.form-checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.form-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background 0.2s ease;
+}
+
+.form-checkbox-label:hover {
+  background: var(--color-border);
+}
+
+.form-checkbox-label input {
+  cursor: pointer;
+}
+
+.form-row {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-group-sm {
+  max-width: 80px !important;
+  flex: 0 0 80px !important;
+}
+
+/* ===== 템플릿 탭 ===== */
+.template-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  background: var(--color-bg-tertiary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.template-tab {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.template-tab:hover {
+  background: var(--color-bg-primary);
+}
+
+.template-tab.active {
+  background: var(--color-primary);
+  color: var(--color-secondary);
+  font-weight: 600;
+}
+
+.template-tab .icon {
+  font-size: var(--font-size-lg);
+}
+
+.template-tab-divider {
+  color: var(--color-text-muted);
+  padding: 0 var(--spacing-xs);
+  display: flex;
+  align-items: center;
+}
+
+.template-tab-custom {
+  border: 1px dashed var(--color-border);
+}
+
+.template-tab-add {
+  border: 1px dashed var(--color-accent);
+  color: var(--color-accent);
+}
+
+.template-tab-add:hover {
+  background: rgba(108, 92, 231, 0.1);
+}
+
+/* ===== 프롬프트 미리보기 ===== */
+.prompt-preview {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.prompt-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.prompt-preview-title {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.prompt-preview-text {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 60px;
+}
+
+.prompt-preview-text.empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ===== 프롬프트 탭 ===== */
+.prompt-tabs {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.prompt-tab {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: none;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.prompt-tab.active {
+  background: var(--color-accent);
+  color: white;
+}
+
+/* ===== 번역 상태 ===== */
+.translate-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-xs);
+}
+
+.translate-status.translating {
+  color: var(--color-warning);
+}
+
+.translate-status.translated {
+  color: var(--color-success);
+}
+
+/* ===== API 상태 ===== */
+.api-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+}
+
+.api-status.connected {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.api-status.disconnected {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.api-status.testing {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ===== 액션 바 ===== */
+.action-bar {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--spacing-lg);
+}
+
+.action-bar .btn {
+  flex: 1;
+}
+
+/* ===== 입력 그룹 ===== */
+.input-group {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.input-group .form-input {
+  flex: 1;
+}
+
+/* ===== 에러 & 성공 메시지 ===== */
+.error-message {
+  background: #FEE2E2;
+  border: 1px solid #FECACA;
+  color: #991B1B;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+.success-message {
+  background: #D1FAE5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+/* ===== 로딩 ===== */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.required {
+  color: var(--color-error);
+}
+
+
+/* ===== panels.css ===== */
+/* ===== 결과 패널 ===== */
+.result-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+}
+
+.result-placeholder {
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.result-placeholder-icon {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.result-image {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.result-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  justify-content: center;
+}
+
+/* ===== 이미지 업로드 영역 ===== */
+.upload-area {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--color-bg-secondary);
+}
+
+.upload-area:hover,
+.upload-area.dragover {
+  border-color: var(--color-accent);
+  background: rgba(108, 92, 231, 0.05);
+}
+
+.upload-area-icon {
+  font-size: 32px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.upload-area-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.upload-area-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-xs);
+}
+
+/* ===== 썸네일 그리드 ===== */
+.thumbnail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.thumbnail-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.thumbnail-item:hover {
+  border-color: var(--color-accent);
+}
+
+.thumbnail-item.selected {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.3);
+}
+
+.thumbnail-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail-item .thumbnail-index {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: var(--font-size-xs);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.thumbnail-item .thumbnail-delete {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: var(--color-error);
+  color: white;
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnail-item:hover .thumbnail-delete {
+  display: flex;
+}
+
+/* ===== 선택된 이미지 정보 ===== */
+.selected-image-info {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.selected-image-preview {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: contain;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.selected-image-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.selected-image-meta p {
+  margin-bottom: var(--spacing-xs);
+}
+
+.selected-image-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+/* ===== 결과 히스토리 ===== */
+.result-history {
+  display: flex;
+  gap: var(--spacing-sm);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.result-history-item {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.result-history-item:hover {
+  border-color: var(--color-accent);
+}
+
+.result-history-item.selected {
+  border-color: var(--color-accent);
+}
+
+.result-history-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== 이미지 확대 모달 ===== */
+.image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.image-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.image-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.image-modal-img {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
+.image-modal-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 32px;
+  cursor: pointer;
+  padding: var(--spacing-sm);
+}
+
+.image-modal-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  padding: var(--spacing-md);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background 0.2s ease;
+}
+
+.image-modal-nav:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.image-modal-nav.prev {
+  left: -60px;
+}
+
+.image-modal-nav.next {
+  right: -60px;
+}
+
+.image-modal-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.image-modal-info {
+  color: white;
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-sm);
+  text-align: center;
+  max-width: 600px;
+}
+
+/* ===== 캔버스 생성기 버튼 ===== */
+.canvas-generator-btn-container {
+  margin-top: var(--spacing-md);
+  text-align: center;
+}
+
+
+/* ===== modals.css ===== */
+/* ===== 모달 ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal {
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  transform: scale(0.95);
+  transition: transform 0.2s ease;
+}
+
+.modal-overlay.active .modal {
+  transform: scale(1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: var(--font-size-xl);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: var(--spacing-xs);
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--color-text-primary);
+}
+
+.modal-body {
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+}
+
+/* 모달 사이즈 변형 */
+.modal-lg {
+  max-width: 700px;
+}
+
+.modal-xl {
+  max-width: 900px;
+}
+
+/* ===== 프롬프트 히스토리 ===== */
+.history-search {
+  margin-bottom: var(--spacing-md);
+}
+
+.prompt-history-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.history-item {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+  transition: all 0.2s ease;
+}
+
+.history-item:hover {
+  border-color: var(--color-accent);
+  background: var(--color-bg-secondary);
+}
+
+.history-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-prompt {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.history-translated {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-xs);
+}
+
+.history-meta {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.history-template {
+  background: var(--color-bg-tertiary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.history-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.empty-history {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--color-text-muted);
+}
+
+/* ===== 캔버스 생성기 ===== */
+.aspect-ratio-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--spacing-xs);
+}
+
+.aspect-ratio-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.aspect-ratio-btn:hover {
+  border-color: var(--color-accent);
+}
+
+.aspect-ratio-btn.active {
+  border-color: var(--color-accent);
+  background: rgba(108, 92, 231, 0.1);
+}
+
+.ratio-preview {
+  border-radius: 2px;
+}
+
+.ratio-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.size-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+}
+
+.size-input-group {
+  flex: 1;
+}
+
+.size-input-group label {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xs);
+}
+
+.size-input-group .form-input {
+  width: 100%;
+}
+
+.size-separator {
+  padding-bottom: var(--spacing-sm);
+  color: var(--color-text-muted);
+}
+
+.size-unit {
+  padding-bottom: var(--spacing-sm);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.background-options {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.background-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.bg-preview {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.bg-white {
+  background: #FFFFFF;
+}
+
+.bg-transparent {
+  background: repeating-conic-gradient(#CCCCCC 0% 25%, #FFFFFF 0% 50%) 50% / 8px 8px;
+}
+
+.canvas-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-md);
+}
+
+#canvasPreview {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.canvas-info {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ===== 템플릿 에디터 ===== */
+.template-editor-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.editor-section {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.editor-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.editor-section h3 {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+}
+
+.editor-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.template-fields-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.editor-field-item {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.editor-field-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-tertiary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.field-drag-handle {
+  cursor: move;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.field-type-badge {
+  background: var(--color-accent);
+  color: white;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+}
+
+.field-label-preview {
+  font-family: monospace;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.field-actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.editor-field-body {
+  padding: var(--spacing-md);
+}
+
+.field-row {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.field-col {
+  flex: 1;
+}
+
+.field-col-sm {
+  max-width: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.field-col label {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.field-options {
+  background: var(--color-bg-tertiary);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.option-row {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.option-row .form-input {
+  flex: 1;
+}
+
+.empty-fields-message {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--color-text-muted);
+}
+
+.field-placeholders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.field-placeholder-btn {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-family: monospace;
+  cursor: pointer;
+}
+
+.field-placeholder-btn:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.custom-template-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.template-duplicate-btn {
+  margin-bottom: var(--spacing-md);
+}
+
+
+/* ===== editing.css ===== */
+/* ===== Thinking 모드 토글 ===== */
+.thinking-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.thinking-toggle:hover {
+  border-color: var(--color-accent);
+}
+
+.thinking-toggle.active {
+  background: rgba(108, 92, 231, 0.1);
+  border-color: var(--color-accent);
+}
+
+.thinking-toggle input {
+  display: none;
+}
+
+.thinking-toggle-switch {
+  width: 40px;
+  height: 20px;
+  background: var(--color-border);
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.thinking-toggle.active .thinking-toggle-switch {
+  background: var(--color-accent);
+}
+
+.thinking-toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+
+.thinking-toggle.active .thinking-toggle-switch::after {
+  transform: translateX(20px);
+}
+
+.thinking-toggle-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.thinking-toggle.active .thinking-toggle-label {
+  color: var(--color-accent);
+}
+
+.thinking-tooltip {
+  position: relative;
+}
+
+.thinking-tooltip .tooltip-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 280px;
+  background: var(--color-secondary);
+  color: white;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-lg);
+}
+
+.thinking-tooltip:hover .tooltip-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(4px);
+}
+
+/* ===== 편집 세션 UI ===== */
+.edit-session {
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.edit-session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.edit-session-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.edit-session-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+/* 편집 히스토리 */
+.edit-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.edit-history-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.edit-history-item:hover {
+  border-color: var(--color-accent);
+}
+
+.edit-history-item.active {
+  border-color: var(--color-accent);
+  background: rgba(108, 92, 231, 0.05);
+}
+
+.edit-history-item .step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.edit-history-item.pending .step-number {
+  background: var(--color-border);
+}
+
+.edit-history-item .step-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.edit-history-item .step-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.edit-history-item .step-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.edit-history-item .step-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.edit-history-item .step-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 수정 요청 입력 */
+.edit-request {
+  margin-top: var(--spacing-sm);
+}
+
+.edit-request-input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  resize: none;
+  min-height: 60px;
+}
+
+.edit-request-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+}
+
+.edit-request-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+/* ===== 빠른 수정 프리셋 ===== */
+.quick-presets {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.quick-presets-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.preset-categories {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.preset-category-btn {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-primary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-category-btn:hover {
+  border-color: var(--color-accent);
+}
+
+.preset-category-btn.active {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+
+.preset-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.preset-item {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-bg-tertiary);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-item:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+
+/* ===== responsive.css ===== */
+/* ===== 반응형 ===== */
+@media (max-width: 1200px) {
+  .main-3col {
+    grid-template-columns: 1fr 1fr;
+  }
+  .main-3col > .panel:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1024px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+  .main-3col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    text-align: center;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .main {
+    padding: var(--spacing-md);
+  }
+
+  .main-3col {
+    padding: var(--spacing-md);
+  }
+
+  .template-tabs {
+    justify-content: center;
+  }
+
+  .action-bar {
+    flex-direction: column;
+  }
+
+  .work-mode-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .translate-toggle {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+    margin-top: var(--spacing-sm);
+  }
+}
+
+
+/* ===== utilities.css ===== */
+/* ===== 유틸리티 ===== */
+.hidden {
+  display: none !important;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-md {
+  margin-top: var(--spacing-md);
+}
+
+.mb-md {
+  margin-bottom: var(--spacing-md);
+}
+
+  </style>
+</head>
+<body>
+<div id="app">
+    <!-- 헤더 -->
+    <header class="header">
+      <h1 class="header-title">
+        <span>🍌</span>
+        <span>나노 바나나 프롬프트 어시스턴트</span>
+      </h1>
+      <div class="header-actions">
+        <!-- Thinking 모드 토글 -->
+        <div class="thinking-tooltip">
+          <label id="thinkingToggle" class="thinking-toggle" onclick="toggleThinkingMode()">
+            <input type="checkbox" id="thinkingCheckbox">
+            <span class="thinking-toggle-switch"></span>
+            <span class="thinking-toggle-label">🧠 Thinking</span>
+          </label>
+          <div class="tooltip-content">
+            <strong>Thinking 모드</strong><br>
+            AI가 이미지 생성 전 논리적 검토를 수행합니다.<br><br>
+            <strong>권장 상황:</strong><br>
+            • 다중 요소가 있는 복잡한 장면<br>
+            • 정확한 텍스트 렌더링<br>
+            • 물리적 정확성이 중요한 이미지<br>
+            • 여러 이미지의 일관성 유지
+          </div>
+        </div>
+        <div id="apiStatus" class="api-status disconnected">
+          <span class="status-dot"></span>
+          <span id="apiStatusText">API 미연결</span>
+        </div>
+        <button class="btn btn-secondary" onclick="openSettingsModal()">
+          <span>⚙️</span>
+          <span>API 설정</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 작업 모드 바 -->
+    <div class="work-mode-bar">
+      <span class="work-mode-label">작업 모드:</span>
+      <div class="work-mode-buttons" id="workModeButtons">
+        <button class="work-mode-btn active" data-mode="explore" onclick="setWorkMode('explore')">
+          <span class="mode-icon">🔍</span>
+          <span class="mode-name">탐색</span>
+          <span class="mode-size">512px</span>
+        </button>
+        <button class="work-mode-btn" data-mode="refine" onclick="setWorkMode('refine')">
+          <span class="mode-icon">✨</span>
+          <span class="mode-name">정제</span>
+          <span class="mode-size">1024px</span>
+        </button>
+        <button class="work-mode-btn" data-mode="final" onclick="setWorkMode('final')">
+          <span class="mode-icon">📸</span>
+          <span class="mode-name">최종</span>
+          <span class="mode-size">원본</span>
+        </button>
+      </div>
+      <label class="translate-toggle">
+        <input type="checkbox" id="translateToggle" onchange="handleTranslateToggle(this.checked)">
+        <span>🌐 한글→영어 자동 번역</span>
+      </label>
+    </div>
+
+    <!-- 메인 (3열 레이아웃) -->
+    <main class="main-3col">
+      <!-- 첨부 이미지 패널 -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>📎</span>
+          <span>첨부 이미지</span>
+          <span style="margin-left: auto; font-size: var(--font-size-xs); color: var(--color-text-muted);">
+            (<span id="attachedCount">0</span>/14)
+          </span>
+        </div>
+        <div class="panel-body">
+          <!-- 업로드 영역 -->
+          <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-area-icon">📤</div>
+            <div class="upload-area-text">이미지를 드래그하거나<br>클릭하여 업로드</div>
+            <div class="upload-area-hint">PNG, JPG, WEBP (최대 14개)</div>
+          </div>
+          <input type="file" id="fileInput" multiple accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+
+          <!-- 썸네일 그리드 -->
+          <div class="thumbnail-grid" id="thumbnailGrid">
+            <!-- JavaScript로 렌더링 -->
+          </div>
+
+          <!-- 선택된 이미지 정보 -->
+          <div class="selected-image-info hidden" id="selectedImageInfo">
+            <img class="selected-image-preview" id="selectedImagePreview" src="" alt="선택된 이미지">
+            <div class="selected-image-meta" id="selectedImageMeta">
+              <!-- JavaScript로 렌더링 -->
+            </div>
+            <div class="selected-image-actions">
+              <button class="btn btn-outline btn-sm" onclick="viewOriginalImage()">🔍 원본 보기</button>
+              <button class="btn btn-outline btn-sm" onclick="deleteSelectedImage()">🗑️ 삭제</button>
+            </div>
+          </div>
+
+          <!-- 빈 캔버스 생성 버튼 -->
+          <div class="canvas-generator-btn-container">
+            <button class="btn btn-outline" onclick="openCanvasGenerator()">
+              📐 빈 캔버스 생성
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 프롬프트 빌더 패널 -->
+      <div class="panel">
+        <!-- 템플릿 탭 -->
+        <div class="template-tabs" id="templateTabs">
+          <!-- JavaScript로 렌더링 -->
+        </div>
+
+        <!-- 폼 영역 -->
+        <div class="panel-body">
+          <div id="templateForm">
+            <!-- JavaScript로 렌더링 -->
+          </div>
+
+          <!-- 프롬프트 미리보기 -->
+          <div class="prompt-preview">
+            <div class="prompt-preview-header">
+              <span class="prompt-preview-title">📝 프롬프트 미리보기</span>
+              <div class="prompt-tabs" id="promptTabs">
+                <button class="prompt-tab active" data-tab="original" onclick="setPromptTab('original')">원본</button>
+                <button class="prompt-tab" data-tab="translated" onclick="setPromptTab('translated')">번역</button>
+              </div>
+              <button class="btn btn-outline btn-icon" onclick="openPromptHistory()" title="히스토리">
+                📜
+              </button>
+              <button class="btn btn-outline btn-icon" onclick="copyPrompt()" title="복사">
+                📋
+              </button>
+            </div>
+            <div id="promptPreview" class="prompt-preview-text empty">
+              필드를 입력하면 프롬프트가 생성됩니다.
+            </div>
+            <div id="translateStatus" class="translate-status hidden">
+              <span id="translateStatusText"></span>
+            </div>
+          </div>
+
+          <!-- 에러 메시지 -->
+          <div id="errorMessage" class="error-message hidden"></div>
+
+          <!-- 액션 버튼 -->
+          <div class="action-bar">
+            <button class="btn btn-outline" onclick="resetForm()">
+              🔄 초기화
+            </button>
+            <button class="btn btn-accent btn-lg" onclick="generateImage()" id="generateBtn">
+              🎨 이미지 생성
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 결과 패널 -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>🖼️</span>
+          <span>생성 결과</span>
+        </div>
+        <div class="panel-body">
+          <!-- 편집 세션 UI -->
+          <div class="edit-session hidden" id="editSession">
+            <div class="edit-session-header">
+              <div class="edit-session-title">
+                <span>🔄</span>
+                <span>편집 세션</span>
+              </div>
+              <div class="edit-session-actions">
+                <button class="btn btn-outline btn-icon" onclick="saveEditSession()" title="세션 저장">💾</button>
+                <button class="btn btn-outline btn-icon" onclick="loadEditSession()" title="세션 불러오기">📂</button>
+                <button class="btn btn-outline btn-icon" onclick="startNewSession()" title="새 세션">🔄</button>
+              </div>
+            </div>
+
+            <!-- 편집 히스토리 -->
+            <div class="edit-history" id="editHistory">
+              <!-- JavaScript로 렌더링 -->
+            </div>
+
+            <!-- 수정 요청 입력 -->
+            <div class="edit-request">
+              <textarea
+                class="edit-request-input"
+                id="editRequestInput"
+                placeholder="이전 결과를 기반으로 수정할 내용을 입력하세요..."
+              ></textarea>
+              <div class="edit-request-actions">
+                <button class="btn btn-outline" onclick="clearEditRequest()">지우기</button>
+                <button class="btn btn-accent" onclick="applyEditRequest()" id="applyEditBtn">✨ 수정 적용</button>
+              </div>
+            </div>
+
+            <!-- 빠른 수정 프리셋 -->
+            <div class="quick-presets">
+              <div class="quick-presets-title">⚡ 빠른 수정</div>
+              <div class="preset-categories" id="presetCategories">
+                <!-- JavaScript로 렌더링 -->
+              </div>
+              <div class="preset-items" id="presetItems">
+                <!-- JavaScript로 렌더링 -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 히스토리 썸네일 -->
+          <div class="result-history hidden" id="resultHistory">
+            <!-- JavaScript로 렌더링 -->
+          </div>
+
+          <div id="resultContainer" class="result-container">
+            <div class="result-placeholder">
+              <div class="result-placeholder-icon">🎨</div>
+              <div>프롬프트를 입력하고<br>이미지를 생성하세요</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 이미지 확대 모달 -->
+    <div id="imageModal" class="image-modal-overlay">
+      <div class="image-modal-content">
+        <button class="image-modal-close" onclick="closeImageModal()">&times;</button>
+        <button class="image-modal-nav prev" onclick="navigateImageModal(-1)">◀</button>
+        <img class="image-modal-img" id="imageModalImg" src="" alt="확대 이미지">
+        <button class="image-modal-nav next" onclick="navigateImageModal(1)">▶</button>
+        <div class="image-modal-actions">
+          <button class="btn btn-primary" onclick="downloadModalImage()">💾 다운로드</button>
+          <button class="btn btn-secondary" onclick="reusePrompt()">✏️ 재편집</button>
+        </div>
+        <div class="image-modal-info" id="imageModalInfo"></div>
+      </div>
+    </div>
+
+    <!-- API 설정 모달 -->
+    <div id="settingsModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">⚙️ API 설정</h2>
+          <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Gemini API Key</label>
+            <div class="input-group">
+              <input
+                type="password"
+                id="apiKeyInput"
+                class="form-input"
+                placeholder="API 키를 입력하세요"
+              >
+              <button class="btn btn-outline btn-icon" onclick="toggleApiKeyVisibility()" title="보기/숨기기">
+                👁
+              </button>
+            </div>
+            <p class="form-help">
+              API 키는 브라우저 로컬 스토리지에 저장됩니다.
+              <a href="https://aistudio.google.com/app/apikey" target="_blank">API 키 발급받기</a>
+            </p>
+          </div>
+
+          <div id="apiTestResult"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="testApiConnection()" id="testApiBtn">
+            🔗 연결 테스트
+          </button>
+          <button class="btn btn-primary" onclick="saveApiKey()">
+            💾 저장
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 프롬프트 히스토리 모달 -->
+    <div id="promptHistoryModal" class="modal-overlay">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2 class="modal-title">📜 프롬프트 히스토리</h2>
+          <button class="modal-close" onclick="closePromptHistory()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="history-search">
+            <input type="text" id="promptHistorySearch" class="form-input"
+                   placeholder="프롬프트 검색..."
+                   oninput="searchPromptHistory(this.value)">
+          </div>
+          <div id="promptHistoryList" class="prompt-history-list">
+            <!-- JavaScript로 렌더링 -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline btn-danger" onclick="clearAllPromptHistory()">
+            🗑️ 전체 삭제
+          </button>
+          <button class="btn btn-outline" onclick="closePromptHistory()">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 캔버스 생성기 모달 -->
+    <div id="canvasGeneratorModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">📐 빈 캔버스 생성</h2>
+          <button class="modal-close" onclick="closeCanvasGenerator()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">종횡비 선택</label>
+            <div id="aspectRatioButtons" class="aspect-ratio-grid">
+              <!-- JavaScript로 렌더링 -->
+            </div>
+          </div>
+
+          <div class="form-group canvas-size-inputs">
+            <label class="form-label">크기</label>
+            <div class="size-input-row">
+              <div class="size-input-group">
+                <label>너비</label>
+                <input type="number" id="canvasWidth" class="form-input"
+                       value="1024" min="100" max="4096"
+                       onchange="setCanvasCustomSize(this.value, document.getElementById('canvasHeight').value)">
+              </div>
+              <span class="size-separator">×</span>
+              <div class="size-input-group">
+                <label>높이</label>
+                <input type="number" id="canvasHeight" class="form-input"
+                       value="1024" min="100" max="4096"
+                       onchange="setCanvasCustomSize(document.getElementById('canvasWidth').value, this.value)">
+              </div>
+              <span class="size-unit">px</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">기준 크기 (긴 쪽)</label>
+            <select id="canvasBaseSize" class="form-select" onchange="setCanvasBaseSize(this.value)">
+              <option value="512">512px</option>
+              <option value="768">768px</option>
+              <option value="1024" selected>1024px</option>
+              <option value="1536">1536px</option>
+              <option value="2048">2048px</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">배경색</label>
+            <div class="background-options">
+              <label class="background-option">
+                <input type="radio" name="bgType" value="white" checked
+                       onchange="setCanvasBackgroundType('white')">
+                <span class="bg-preview bg-white"></span>
+                <span>흰색</span>
+              </label>
+              <label class="background-option">
+                <input type="radio" name="bgType" value="transparent"
+                       onchange="setCanvasBackgroundType('transparent')">
+                <span class="bg-preview bg-transparent"></span>
+                <span>투명</span>
+              </label>
+              <label class="background-option">
+                <input type="radio" name="bgType" value="custom"
+                       onchange="setCanvasBackgroundType('custom')">
+                <input type="color" id="canvasBgColor" value="#FFFFFF"
+                       onchange="setCanvasBackgroundColor(this.value)">
+                <span>커스텀</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="canvas-preview-container">
+            <canvas id="canvasPreview" width="200" height="200"></canvas>
+            <div id="canvasInfo" class="canvas-info">1024 × 1024px</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeCanvasGenerator()">취소</button>
+          <button class="btn btn-primary" onclick="generateAndAttachCanvas()">
+            ✅ 캔버스 생성 및 첨부
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 템플릿 에디터 모달 -->
+    <div id="templateEditorModal" class="modal-overlay">
+      <div class="modal modal-xl">
+        <div class="modal-header">
+          <h2 class="modal-title">📝 템플릿 편집기</h2>
+          <button class="modal-close" onclick="closeTemplateEditor()">&times;</button>
+        </div>
+        <div class="modal-body template-editor-body">
+          <div class="editor-section">
+            <h3>기본 정보</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">템플릿 이름 <span class="required">*</span></label>
+                <input type="text" id="templateName" class="form-input" placeholder="예: 내 제품 사진 템플릿">
+              </div>
+              <div class="form-group form-group-sm">
+                <label class="form-label">아이콘</label>
+                <input type="text" id="templateIcon" class="form-input" value="🎨" maxlength="2">
+              </div>
+              <div class="form-group">
+                <label class="form-label">카테고리</label>
+                <select id="templateCategory" class="form-select">
+                  <option value="custom">커스텀</option>
+                  <option value="basic">기본</option>
+                  <option value="typography">타이포그래피</option>
+                  <option value="artwork">아트워크</option>
+                  <option value="professional">전문</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">설명</label>
+              <input type="text" id="templateDescription" class="form-input" placeholder="템플릿에 대한 간단한 설명">
+            </div>
+          </div>
+
+          <div class="editor-section">
+            <div class="editor-section-header">
+              <h3>필드</h3>
+              <button class="btn btn-primary btn-sm" onclick="addEditorField()">➕ 필드 추가</button>
+            </div>
+            <div id="templateFieldsEditor" class="template-fields-editor">
+              <div class="empty-fields-message">필드가 없습니다. "필드 추가" 버튼을 클릭하세요.</div>
+            </div>
+          </div>
+
+          <div class="editor-section">
+            <h3>프롬프트 템플릿</h3>
+            <p class="form-help">필드 값을 삽입하려면 {필드ID}를 사용하세요. 아래 버튼을 클릭하면 자동 삽입됩니다.</p>
+            <div class="field-placeholders" id="fieldPlaceholders">
+              <!-- JavaScript로 필드 버튼 렌더링 -->
+            </div>
+            <textarea id="templatePrompt" class="form-textarea" rows="6"
+                      placeholder="Create a {style} image of {subject}..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="importTemplate()">📥 가져오기</button>
+          <button class="btn btn-outline" onclick="closeTemplateEditor()">취소</button>
+          <button class="btn btn-primary" onclick="saveTemplate()">💾 저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ES Module 진입점 -->
+
+  <script>
+// ===== 나노 바나나 프롬프트 어시스턴트 =====
+// 빌드: 2025-12-24T00:24:59.358Z
+(function() {
+  'use strict';
+
+// ===== templates.js =====
+// ===== TEMPLATES =====
+
+const TEMPLATES = {
+  basic: {
+    id: 'basic',
+    name: '기본 프롬프트',
+    icon: '🎨',
+    category: 'basic',
+    description: 'Google 공식 6요소 공식 기반',
+    fields: [
+      {
+        id: 'subject',
+        label: '주제 (Subject)',
+        type: 'textarea',
+        placeholder: '예: 파란색 발광 광학기를 가진 금욕적인 로봇 바리스타',
+        required: true,
+        helpText: '구체적으로 작성하세요. "로봇"보다 "파란 발광 광학기를 가진 로봇 바리스타"가 좋습니다.'
+      },
+      {
+        id: 'composition',
+        label: '구성 (Composition)',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'extreme close-up', label: '익스트림 클로즈업' },
+          { value: 'close-up', label: '클로즈업' },
+          { value: 'medium shot', label: '미디엄 샷' },
+          { value: 'wide shot', label: '와이드 샷' },
+          { value: 'establishing shot', label: '전체 샷' },
+          { value: 'birds eye view', label: '버드 아이 뷰' },
+          { value: 'worms eye view', label: '웜즈 아이 뷰' }
+        ]
+      },
+      {
+        id: 'action',
+        label: '액션 (Action)',
+        type: 'text',
+        placeholder: '예: 커피를 내리고 있는, 달리는 중인'
+      },
+      {
+        id: 'location',
+        label: '위치 (Location)',
+        type: 'text',
+        placeholder: '예: 화성의 미래형 카페에서'
+      },
+      {
+        id: 'style',
+        label: '스타일 (Style)',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'photorealistic', label: '포토리얼리스틱' },
+          { value: '3D animation', label: '3D 애니메이션' },
+          { value: 'watercolor painting', label: '수채화' },
+          { value: 'oil painting', label: '유화' },
+          { value: 'pencil sketch', label: '연필 스케치' },
+          { value: 'digital art', label: '디지털 아트' },
+          { value: 'vintage photograph', label: '빈티지 사진' }
+        ]
+      },
+      {
+        id: 'lighting',
+        label: '조명',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'golden hour sunlight', label: '골든아워' },
+          { value: 'soft diffused light', label: '소프트 디퓨즈드' },
+          { value: 'dramatic chiaroscuro', label: '명암법 (Chiaroscuro)' },
+          { value: 'neon lighting', label: '네온 조명' },
+          { value: 'studio three-point lighting', label: '스튜디오 3점 조명' },
+          { value: 'Rembrandt lighting', label: '렘브란트 조명' }
+        ]
+      },
+      {
+        id: 'additional',
+        label: '추가 지시사항',
+        type: 'textarea',
+        placeholder: '색상 팔레트, 분위기, 기타 세부사항...'
+      }
+    ],
+    promptTemplate: 'Create a {style} image of {subject}{action}{location}. {composition}. {lighting}. {additional}'
+  },
+
+  photo: {
+    id: 'photo',
+    name: '포토리얼리스틱',
+    icon: '📷',
+    category: 'basic',
+    description: '사진 스타일 이미지 생성',
+    fields: [
+      {
+        id: 'subject',
+        label: '피사체',
+        type: 'textarea',
+        placeholder: '예: 석양을 바라보는 젊은 여성',
+        required: true
+      },
+      {
+        id: 'camera',
+        label: '카메라',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'Canon EOS R5', label: 'Canon EOS R5' },
+          { value: 'Sony A7R V', label: 'Sony A7R V' },
+          { value: 'Nikon Z9', label: 'Nikon Z9' },
+          { value: 'Hasselblad H6D', label: 'Hasselblad H6D' }
+        ]
+      },
+      {
+        id: 'lens',
+        label: '렌즈',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: '85mm f/1.4', label: '85mm f/1.4 (인물)' },
+          { value: '35mm f/1.4', label: '35mm f/1.4 (환경 인물)' },
+          { value: '24-70mm f/2.8', label: '24-70mm f/2.8 (범용)' },
+          { value: '70-200mm f/2.8', label: '70-200mm f/2.8 (망원)' },
+          { value: '100mm macro', label: '100mm 매크로' }
+        ]
+      },
+      {
+        id: 'aperture',
+        label: '조리개',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'f/1.4', label: 'f/1.4 (극얕은 심도)' },
+          { value: 'f/2.8', label: 'f/2.8 (얕은 심도)' },
+          { value: 'f/5.6', label: 'f/5.6 (중간)' },
+          { value: 'f/8', label: 'f/8 (선명)' },
+          { value: 'f/11', label: 'f/11 (풍경)' }
+        ]
+      },
+      {
+        id: 'lighting',
+        label: '조명',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'golden hour sunlight', label: '골든아워' },
+          { value: 'soft window light', label: '창문 자연광' },
+          { value: 'overcast diffused', label: '흐린 날 확산광' },
+          { value: 'Rembrandt lighting', label: '렘브란트 조명' },
+          { value: 'rim light', label: '림 라이트' },
+          { value: 'three-point studio', label: '3점 스튜디오 조명' }
+        ]
+      },
+      {
+        id: 'filmStock',
+        label: '필름/색감',
+        type: 'select',
+        options: [
+          { value: '', label: '기본 디지털' },
+          { value: 'Kodachrome 64 color science', label: 'Kodachrome 64' },
+          { value: 'Fujifilm Velvia saturated', label: 'Fujifilm Velvia' },
+          { value: 'Cinestill 800T', label: 'Cinestill 800T' },
+          { value: 'vintage Polaroid', label: '빈티지 폴라로이드' }
+        ]
+      },
+      {
+        id: 'depthOfField',
+        label: '피사계 심도',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'shallow depth of field with creamy bokeh', label: '얕은 심도, 크리미 보케' },
+          { value: 'sharp focus throughout', label: '전체 선명' },
+          { value: 'selective focus on subject', label: '피사체만 선명' }
+        ]
+      },
+      {
+        id: 'additional',
+        label: '추가 지시사항',
+        type: 'textarea',
+        placeholder: '분위기, 색조, 기타 세부사항...'
+      }
+    ],
+    promptTemplate: 'A photorealistic photograph of {subject}. Captured with {camera}, {lens} lens at {aperture}. {lighting}. {filmStock}. {depthOfField}. {additional}'
+  },
+
+  typography: {
+    id: 'typography',
+    name: '타이포그래피',
+    icon: '✏️',
+    category: 'typography',
+    description: '텍스트가 포함된 이미지 생성',
+    fields: [
+      {
+        id: 'text',
+        label: '표시할 텍스트',
+        type: 'text',
+        placeholder: '예: HELLO WORLD',
+        required: true,
+        helpText: '25자 이하 권장, 2-3개 문구로 제한하면 좋습니다.'
+      },
+      {
+        id: 'fontStyle',
+        label: '폰트 스타일',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'bold sans-serif', label: '굵은 산세리프' },
+          { value: 'elegant serif', label: '우아한 세리프' },
+          { value: 'hand-written script', label: '손글씨 필기체' },
+          { value: 'retro vintage', label: '레트로 빈티지' },
+          { value: 'modern minimalist', label: '모던 미니멀리스트' },
+          { value: 'graffiti style', label: '그래피티 스타일' },
+          { value: 'neon sign', label: '네온 사인' }
+        ]
+      },
+      {
+        id: 'textColor',
+        label: '텍스트 색상',
+        type: 'text',
+        placeholder: '예: 흰색, 금색, 그라데이션 파랑-보라'
+      },
+      {
+        id: 'placement',
+        label: '텍스트 위치',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'centered in the image', label: '중앙' },
+          { value: 'at the top', label: '상단' },
+          { value: 'at the bottom', label: '하단' },
+          { value: 'diagonal across', label: '대각선' },
+          { value: 'curved around subject', label: '곡선으로 배치' }
+        ]
+      },
+      {
+        id: 'background',
+        label: '배경',
+        type: 'text',
+        placeholder: '예: 어두운 우주 배경, 흰색 대리석, 네온 도시'
+      },
+      {
+        id: 'effects',
+        label: '효과',
+        type: 'text',
+        placeholder: '예: 그림자, 빛 발산, 3D 입체감'
+      },
+      {
+        id: 'additional',
+        label: '추가 지시사항',
+        type: 'textarea',
+        placeholder: '기타 세부사항...'
+      }
+    ],
+    promptTemplate: 'Create an image with the text "{text}" displayed prominently. Font style: {fontStyle}. Text color: {textColor}. Text placement: {placement}. Background: {background}. Effects: {effects}. {additional}'
+  },
+
+  logoGrid: {
+    id: 'logoGrid',
+    name: '8개 로고 그리드',
+    icon: '🔤',
+    category: 'typography',
+    description: '한 번에 여러 로고 변형 생성',
+    fields: [
+      {
+        id: 'theme',
+        label: '테마',
+        type: 'text',
+        placeholder: '예: 음식, 감정, 동물',
+        required: true
+      },
+      {
+        id: 'expressionStyle',
+        label: '표현 방식',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'letters visually express meaning', label: '글자가 의미를 시각적으로 표현' },
+          { value: 'letters made of actual objects', label: '글자를 실제 물체로 제작' },
+          { value: 'letters with dramatic shadows', label: '극적인 그림자가 있는 글자' }
+        ]
+      },
+      {
+        id: 'backgroundColor',
+        label: '배경색',
+        type: 'select',
+        options: [
+          { value: 'white', label: '흰색' },
+          { value: 'black', label: '검은색' },
+          { value: 'gradient gray', label: '그라데이션 회색' }
+        ]
+      },
+      {
+        id: 'renderStyle',
+        label: '렌더링 스타일',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'flat vector black', label: '플랫 벡터 검은색' },
+          { value: 'colorful 3D', label: '컬러풀 3D' },
+          { value: 'minimalist line art', label: '미니멀 라인 아트' }
+        ]
+      }
+    ],
+    promptTemplate: 'Create 8 minimalist logos. Each is a word related to {theme}, where {expressionStyle}. Composition: all logos on a single {backgroundColor} background, rendered in {renderStyle} style.'
+  },
+
+  chiaroscuro: {
+    id: 'chiaroscuro',
+    name: '명암법 (Chiaroscuro)',
+    icon: '🌓',
+    category: 'artwork',
+    description: '드라마틱한 명암 대비 효과',
+    fields: [
+      {
+        id: 'subject',
+        label: '피사체',
+        type: 'textarea',
+        placeholder: '예: 중년 남성의 측면 초상화',
+        required: true
+      },
+      {
+        id: 'lightDirection',
+        label: '조명 방향',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'from above and slightly left', label: '위와 약간 왼쪽에서' },
+          { value: 'from above and slightly right', label: '위와 약간 오른쪽에서' },
+          { value: 'from direct side left', label: '왼쪽 측면에서' },
+          { value: 'from below (horror style)', label: '아래에서 (호러 스타일)' }
+        ]
+      },
+      {
+        id: 'highlightAreas',
+        label: '하이라이트 영역',
+        type: 'text',
+        placeholder: '예: 눈과 광대뼈만',
+        helpText: '빛이 닿는 부분을 지정'
+      },
+      {
+        id: 'shadowIntensity',
+        label: '그림자 강도',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'deep and sharp', label: '깊고 선명한' },
+          { value: 'soft and gradual', label: '부드럽고 점진적' },
+          { value: 'extreme contrast', label: '극단적 대비' }
+        ]
+      },
+      {
+        id: 'mood',
+        label: '분위기',
+        type: 'text',
+        placeholder: '예: 신비로운, 극적인, 고전적인'
+      }
+    ],
+    promptTemplate: 'Generate intense chiaroscuro effect. Harsh, directional lighting coming {lightDirection}. Cast {shadowIntensity} shadows. Only {highlightAreas} are illuminated by thin lines of light, rest in deep shadow. Subject: {subject}. Mood: {mood}.'
+  },
+
+  productLifestyle: {
+    id: 'productLifestyle',
+    name: '제품 라이프스타일',
+    icon: '📦',
+    category: 'professional',
+    description: '제품을 여러 환경에 배치',
+    fields: [
+      {
+        id: 'productDescription',
+        label: '제품 설명',
+        type: 'textarea',
+        placeholder: '예: 미니멀한 디자인의 스테인리스 스틸 텀블러',
+        required: true,
+        helpText: '제품의 형태, 색상, 재질을 상세히 설명하세요'
+      },
+      {
+        id: 'scene1',
+        label: '장면 1',
+        type: 'text',
+        placeholder: '예: 맥북과 커피가 있는 미니멀한 홈 오피스 책상 위'
+      },
+      {
+        id: 'scene2',
+        label: '장면 2',
+        type: 'text',
+        placeholder: '예: 타월과 물병이 있는 헬스장 가방 안'
+      },
+      {
+        id: 'scene3',
+        label: '장면 3',
+        type: 'text',
+        placeholder: '예: 와인 잔과 촛불이 있는 레스토랑 테이블 위'
+      },
+      {
+        id: 'scene4',
+        label: '장면 4',
+        type: 'text',
+        placeholder: '예: 숲 등산로의 열린 백팩 안'
+      },
+      {
+        id: 'consistency',
+        label: '일관성 유지 항목',
+        type: 'checkbox-group',
+        options: [
+          { value: 'same angle', label: '같은 각도' },
+          { value: 'same material reflection', label: '같은 재질 반사' },
+          { value: 'same color', label: '같은 색상' },
+          { value: 'same logo position', label: '같은 로고 위치' }
+        ],
+        defaultValue: ['same angle', 'same material reflection', 'same color', 'same logo position']
+      },
+      {
+        id: 'lightingStyle',
+        label: '조명 스타일',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'natural daylight', label: '자연 주광' },
+          { value: 'soft studio lighting', label: '소프트 스튜디오 조명' },
+          { value: 'dramatic side lighting', label: '드라마틱 사이드 조명' },
+          { value: 'warm golden hour', label: '따뜻한 골든아워' }
+        ]
+      }
+    ],
+    promptTemplate: 'Show this product in 4 lifestyle scenes:\n1) {scene1}\n2) {scene2}\n3) {scene3}\n4) {scene4}\n\nProduct: {productDescription}\n\nProduct must remain identical across all images: {consistency}. Only environment, props, and lighting change. Lighting style: {lightingStyle}. Use natural depth of field. Output as 4 separate images optimized for e-commerce.'
+  },
+
+  // ===== Phase 4 추가 템플릿 =====
+
+  composite: {
+    id: 'composite',
+    name: '다중 이미지 합성',
+    icon: '🧩',
+    category: 'professional',
+    description: '여러 이미지를 하나로 합성',
+    fields: [
+      {
+        id: 'aspectRatio',
+        label: '최종 종횡비',
+        type: 'select',
+        options: [
+          { value: '16:9', label: '16:9 와이드' },
+          { value: '1:1', label: '1:1 정사각형' },
+          { value: '4:3', label: '4:3 가로' },
+          { value: '9:16', label: '9:16 세로' },
+          { value: '3:4', label: '3:4 세로' }
+        ],
+        required: true
+      },
+      {
+        id: 'compositeInstructions',
+        label: '합성 지시사항',
+        type: 'textarea',
+        placeholder: '각 이미지의 배치 위치와 크기를 설명하세요.\n예: 이미지 1을 왼쪽에, 이미지 2를 중앙 크게, 이미지 3을 오른쪽 상단에 작게',
+        required: true,
+        helpText: '첨부 패널에서 이미지를 먼저 업로드하세요 (최대 14개)'
+      },
+      {
+        id: 'lightingUnity',
+        label: '조명 통일',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'unified studio lighting from left', label: '왼쪽 스튜디오 조명' },
+          { value: 'unified natural daylight', label: '자연 주광' },
+          { value: 'unified soft box at 45 degrees', label: '소프트박스 45도' },
+          { value: 'unified golden hour warm lighting', label: '골든아워 따뜻한 조명' }
+        ]
+      },
+      {
+        id: 'shadowDirection',
+        label: '그림자 방향',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'consistent shadows to the right', label: '오른쪽으로 통일' },
+          { value: 'consistent shadows to the left', label: '왼쪽으로 통일' },
+          { value: 'consistent shadows below', label: '아래로 통일' },
+          { value: 'soft diffused shadows', label: '부드럽게 확산' }
+        ]
+      },
+      {
+        id: 'background',
+        label: '배경',
+        type: 'text',
+        placeholder: '예: 그라데이션 회색, 흰색 스튜디오, 도시 야경'
+      },
+      {
+        id: 'additional',
+        label: '추가 지시사항',
+        type: 'textarea',
+        placeholder: '색감 통일, 블렌딩 방식 등...'
+      }
+    ],
+    promptTemplate: 'Composite the uploaded images into a single {aspectRatio} image. {compositeInstructions}. Apply {lightingUnity} with {shadowDirection}. Background: {background}. {additional}'
+  },
+
+  magazine: {
+    id: 'magazine',
+    name: '매거진 커버',
+    icon: '📰',
+    category: 'typography',
+    description: '광택 매거진 커버 스타일',
+    fields: [
+      {
+        id: 'title',
+        label: '매거진 제목',
+        type: 'text',
+        placeholder: '예: VOGUE, TIME, ELLE',
+        required: true,
+        helpText: '25자 이하 권장'
+      },
+      {
+        id: 'personDescription',
+        label: '인물 설명',
+        type: 'textarea',
+        placeholder: '예: 녹색과 골드 고급 패션을 입은 다이나믹한 인물'
+      },
+      {
+        id: 'fontStyle',
+        label: '폰트 스타일',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'bold serif black-white', label: '굵은 세리프 흑백' },
+          { value: 'elegant script gold', label: '우아한 필기체 골드' },
+          { value: 'modern sans-serif white', label: '모던 산세리프 흰색' },
+          { value: 'vintage art deco', label: '빈티지 아트데코' }
+        ]
+      },
+      {
+        id: 'issueInfo',
+        label: '발행 정보',
+        type: 'text',
+        placeholder: '예: 2025년 12월호, $15.99'
+      },
+      {
+        id: 'extras',
+        label: '추가 요소',
+        type: 'checkbox-group',
+        options: [
+          { value: 'barcode in corner', label: '바코드' },
+          { value: 'issue number displayed', label: '발행 호수' },
+          { value: 'price tag visible', label: '가격표' }
+        ]
+      }
+    ],
+    promptTemplate: 'Glossy magazine cover photo. Cover displays "{title}" in large {fontStyle} font filling the top. In front of the text, {personDescription}. Corner includes {issueInfo}. {extras}. Magazine resting on white shelf leaning against wall.'
+  },
+
+  quilling: {
+    id: 'quilling',
+    name: '페이퍼 퀼링',
+    icon: '🎀',
+    category: 'artwork',
+    description: '종이 띠로 만든 입체 아트워크',
+    fields: [
+      {
+        id: 'text',
+        label: '표현할 텍스트',
+        type: 'text',
+        placeholder: '예: MAGIC, LOVE, DREAM',
+        required: true,
+        helpText: '짧은 단어 권장 (1-2단어)'
+      },
+      {
+        id: 'colors',
+        label: '종이 띠 색상',
+        type: 'text',
+        placeholder: '예: 보라색, 핑크, 마젠타, 흰색',
+        helpText: '콤마로 여러 색상 구분'
+      },
+      {
+        id: 'backgroundColor',
+        label: '배경색',
+        type: 'text',
+        placeholder: '예: 진회색, 크림색, 검은색'
+      },
+      {
+        id: 'scriptStyle',
+        label: '글씨 스타일',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'elaborate calligraphy script', label: '정교한 캘리그래피' },
+          { value: 'bold block letters', label: '굵은 블록 글자' },
+          { value: 'flowing cursive', label: '흐르는 필기체' },
+          { value: 'decorative ornamental', label: '장식적 오너멘탈' }
+        ]
+      },
+      {
+        id: 'depth',
+        label: '입체감 수준',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'subtle 3D depth', label: '은은한 입체감' },
+          { value: 'pronounced layered depth', label: '뚜렷한 레이어 깊이' },
+          { value: 'extreme sculptural depth', label: '극적인 조각적 깊이' }
+        ]
+      }
+    ],
+    promptTemplate: 'Paper quilling artwork, rendered with {colors} paper strips. The word "{text}" expressed in {scriptStyle}. Paper strips create {depth} and natural shadows, placed on {backgroundColor} textured background.'
+  },
+
+  material: {
+    id: 'material',
+    name: '재료/텍스처',
+    icon: '🪨',
+    category: 'artwork',
+    description: '오브젝트를 특정 재료로 표현',
+    fields: [
+      {
+        id: 'targetObject',
+        label: '대상 오브젝트',
+        type: 'textarea',
+        placeholder: '예: 사과, 자동차, 인간 얼굴',
+        required: true
+      },
+      {
+        id: 'material',
+        label: '재료',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'polished marble', label: '광택 대리석' },
+          { value: 'rough granite', label: '거친 화강암' },
+          { value: 'liquid mercury', label: '액체 수은' },
+          { value: 'cracked porcelain', label: '금간 도자기' },
+          { value: 'weathered bronze', label: '풍화된 청동' },
+          { value: 'ice crystal', label: '얼음 결정' },
+          { value: 'molten lava', label: '녹은 용암' },
+          { value: 'woven fabric', label: '직조 천' },
+          { value: 'transparent glass', label: '투명 유리' }
+        ]
+      },
+      {
+        id: 'textureDetails',
+        label: '텍스처 디테일',
+        type: 'text',
+        placeholder: '예: 균열, 반사, 질감, 표면 처리'
+      },
+      {
+        id: 'lighting',
+        label: '조명',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'studio lighting for material showcase', label: '재질 쇼케이스용 스튜디오 조명' },
+          { value: 'dramatic side lighting', label: '드라마틱 사이드 조명' },
+          { value: 'soft ambient lighting', label: '부드러운 환경 조명' }
+        ]
+      },
+      {
+        id: 'background',
+        label: '배경',
+        type: 'text',
+        placeholder: '예: 검은 배경, 그라데이션, 자연환경'
+      }
+    ],
+    promptTemplate: 'Create {targetObject} made entirely of {material}. The surface shows {textureDetails}. Lighting: {lighting}. Background: {background}. Photorealistic render emphasizing the material properties.'
+  },
+
+  cityLettering: {
+    id: 'cityLettering',
+    name: '도시 레터링',
+    icon: '🏙️',
+    category: 'artwork',
+    description: '건물로 글자 형태 표현',
+    fields: [
+      {
+        id: 'city',
+        label: '도시',
+        type: 'text',
+        placeholder: '예: 베를린, 서울, 도쿄, 뉴욕',
+        required: true
+      },
+      {
+        id: 'word',
+        label: '표현할 단어',
+        type: 'text',
+        placeholder: '예: BERLIN, SEOUL',
+        required: true,
+        helpText: '도시 이름 또는 짧은 단어 권장'
+      },
+      {
+        id: 'buildingColors',
+        label: '건물 색상',
+        type: 'text',
+        placeholder: '예: 파란색, 빨간색, 흰색, 검은색'
+      },
+      {
+        id: 'timeOfDay',
+        label: '시간대',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'bright sunny day', label: '밝은 햇살 낮' },
+          { value: 'golden hour sunset', label: '골든아워 석양' },
+          { value: 'blue hour twilight', label: '블루아워 황혼' },
+          { value: 'night with city lights', label: '도시 불빛 밤' }
+        ]
+      },
+      {
+        id: 'perspective',
+        label: '시점',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'street level view', label: '거리 시점' },
+          { value: 'aerial view', label: '공중 시점' },
+          { value: 'wide panoramic', label: '와이드 파노라마' }
+        ]
+      }
+    ],
+    promptTemplate: '{timeOfDay} {city} street view. Old buildings arranged subtly in the shape of the letters "{word}". Buildings painted in {buildingColors}. Buildings still look like buildings, similarity to letters is subtle. {perspective}. Strong shadows, sharp details.'
+  },
+
+  lightingPro: {
+    id: 'lightingPro',
+    name: '조명 정밀 제어',
+    icon: '💡',
+    category: 'professional',
+    description: '기술적 조명 언어로 정확한 조명 설정',
+    fields: [
+      {
+        id: 'subject',
+        label: '피사체/장면',
+        type: 'textarea',
+        placeholder: '예: 프리미엄 시계 제품 사진, 인물 초상화',
+        required: true
+      },
+      {
+        id: 'colorTemp',
+        label: '색온도',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: '5600K daylight balanced', label: '5600K 주광' },
+          { value: '3200K tungsten warm', label: '3200K 텅스텐 따뜻함' },
+          { value: '6500K cool daylight', label: '6500K 쿨 데이라이트' },
+          { value: 'mixed warm key and cool fill', label: '혼합 (따뜻함 키 + 차가움 필)' }
+        ]
+      },
+      {
+        id: 'keyLight',
+        label: '키 라이트',
+        type: 'text',
+        placeholder: '예: 왼쪽 상단에서 45도 각도, 소프트박스',
+        helpText: '주요 조명의 위치, 각도, 수식어'
+      },
+      {
+        id: 'fillLight',
+        label: '필 라이트',
+        type: 'text',
+        placeholder: '예: 오른쪽에서 30% 강도의 반사판',
+        helpText: '그림자를 채우는 보조 조명'
+      },
+      {
+        id: 'rimLight',
+        label: '림/백 라이트',
+        type: 'text',
+        placeholder: '예: 뒤에서 피사체 가장자리를 강조하는 얇은 빛',
+        helpText: '피사체 윤곽을 분리하는 조명'
+      },
+      {
+        id: 'surface',
+        label: '배치 표면',
+        type: 'text',
+        placeholder: '예: 검은 아크릴 표면에 반사, 흰색 무광 테이블'
+      }
+    ],
+    promptTemplate: '{subject}. Professional lighting setup: {colorTemp} color temperature. Key light: {keyLight}. Fill light: {fillLight}. Rim/back light: {rimLight}. Subject placed on {surface}. Studio photography quality.'
+  }
+};
+
+
+// ===== state.js =====
+// ===== STATE =====
+
+
+const state = {
+  apiKey: '',
+  apiStatus: 'disconnected', // 'disconnected' | 'testing' | 'connected' | 'error'
+  currentTemplate: 'basic',
+  fieldValues: {},
+  generatedImage: null,
+  isLoading: false,
+  error: null,
+  // Phase 2 추가
+  workMode: 'explore', // 'explore' | 'refine' | 'final'
+  attachedImages: [], // { id, file, originalSize, processedSize, base64, thumbnail, width, height }
+  selectedImageId: null,
+  resultHistory: [], // { id, prompt, translatedPrompt, image: { mimeType, data }, timestamp }
+  selectedResultId: null,
+  autoTranslate: false,
+  translatedPrompt: '',
+  isTranslating: false,
+  promptTab: 'original', // 'original' | 'translated'
+  imageModalIndex: -1,
+  // Phase 3 추가
+  thinkingMode: false,
+  editSession: {
+    sessionId: null,
+    basePrompt: '',
+    editHistory: [], // { id, step, request, prompt, image, timestamp }
+    currentEditIndex: -1
+  },
+  presetCategory: 'lighting',
+  // Phase 4 추가
+  promptHistory: [], // { id, prompt, translatedPrompt, templateId, timestamp }
+  promptHistorySearch: '',
+  customTemplates: {}, // { templateId: templateObject }
+  editingTemplate: null, // 현재 편집 중인 템플릿 ID
+  templateEditorFields: [], // 편집기의 필드 목록
+  canvasSettings: {
+    aspectRatio: '1:1',
+    customWidth: 1024,
+    customHeight: 1024,
+    baseSize: 1024,
+    backgroundColor: '#FFFFFF',
+    backgroundType: 'white' // 'white' | 'transparent' | 'custom'
+  }
+};
+
+// 템플릿별 기본값 초기화
+function initializeFieldValues() {
+  Object.keys(TEMPLATES).forEach(templateId => {
+    state.fieldValues[templateId] = {};
+    TEMPLATES[templateId].fields.forEach(field => {
+      if (field.defaultValue !== undefined) {
+        state.fieldValues[templateId][field.id] = field.defaultValue;
+      } else if (field.type === 'checkbox-group') {
+        state.fieldValues[templateId][field.id] = [];
+      } else if (field.type === 'checkbox') {
+        state.fieldValues[templateId][field.id] = false;
+      } else {
+        state.fieldValues[templateId][field.id] = '';
+      }
+    });
+  });
+}
+
+// 커스텀 템플릿의 필드값도 초기화
+function initializeCustomTemplateFieldValues(templateId, template) {
+  state.fieldValues[templateId] = {};
+  template.fields.forEach(field => {
+    if (field.defaultValue !== undefined) {
+      state.fieldValues[templateId][field.id] = field.defaultValue;
+    } else if (field.type === 'checkbox-group') {
+      state.fieldValues[templateId][field.id] = [];
+    } else if (field.type === 'checkbox') {
+      state.fieldValues[templateId][field.id] = false;
+    } else {
+      state.fieldValues[templateId][field.id] = '';
+    }
+  });
+}
+
+
+// ===== config.js =====
+// ===== CONFIG =====
+
+const STORAGE_KEYS = {
+  API_KEY: 'nano_banana_api_key',
+  SETTINGS: 'nano_banana_settings',
+  HISTORY: 'nano_banana_history',
+  PROMPT_HISTORY: 'nano_banana_prompt_history',
+  CUSTOM_TEMPLATES: 'nano_banana_custom_templates'
+};
+
+const API_ENDPOINTS = {
+  TEXT: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+  IMAGE: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent'
+};
+
+const API_ERRORS = {
+  400: '잘못된 요청입니다. 프롬프트를 확인해주세요.',
+  401: 'API 키가 유효하지 않습니다.',
+  403: '접근이 거부되었습니다. API 키 권한을 확인해주세요.',
+  429: '요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.',
+  500: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+  'NETWORK_ERROR': '네트워크 연결을 확인해주세요.',
+  'IMAGE_SAFETY': '안전 필터에 의해 이미지 생성이 차단되었습니다.'
+};
+
+// Thinking 모드 프리픽스 템플릿
+const THINKING_PREFIX = `Before generating this image:
+1. Analyze the core objective of my request
+2. Verify logical consistency of physics, lighting, and composition
+3. Establish relationships and priorities between elements
+4. Review potential error points (e.g., text spelling, proportions)
+
+Then generate:
+`;
+
+// 빠른 수정 프리셋 데이터
+const QUICK_PRESETS = {
+  lighting: {
+    id: 'lighting',
+    name: '💡 조명',
+    presets: [
+      { id: 'warmer', label: '더 따뜻하게', prompt: 'Make the lighting warmer with golden tones' },
+      { id: 'cooler', label: '더 차갑게', prompt: 'Make the lighting cooler with blue tones' },
+      { id: 'shadow_strong', label: '그림자 강화', prompt: 'Enhance shadows for more dramatic contrast' },
+      { id: 'shadow_soft', label: '그림자 부드럽게', prompt: 'Soften shadows for a more gentle look' },
+      { id: 'backlight', label: '역광 추가', prompt: 'Add backlighting/rim light behind the subject' }
+    ]
+  },
+  color: {
+    id: 'color',
+    name: '🎨 색상',
+    presets: [
+      { id: 'saturation_up', label: '채도 +15%', prompt: 'Increase color saturation by 15%' },
+      { id: 'saturation_down', label: '채도 -15%', prompt: 'Decrease color saturation by 15%' },
+      { id: 'contrast_up', label: '대비 높이기', prompt: 'Increase contrast for more vivid colors' },
+      { id: 'vintage', label: '빈티지 톤', prompt: 'Apply vintage/retro color grading' },
+      { id: 'monochrome', label: '모노크롬', prompt: 'Convert to monochrome/black and white' }
+    ]
+  },
+  elements: {
+    id: 'elements',
+    name: '🧩 요소',
+    presets: [
+      { id: 'add_logo', label: '로고 추가', prompt: 'Add a subtle logo placeholder in the corner' },
+      { id: 'add_text', label: '텍스트 추가', prompt: 'Add text overlay space' },
+      { id: 'change_bg', label: '배경 변경', prompt: 'Change the background to a neutral/clean background' },
+      { id: 'add_props', label: '소품 추가', prompt: 'Add complementary props/accessories to the scene' }
+    ]
+  },
+  style: {
+    id: 'style',
+    name: '🖌️ 스타일',
+    presets: [
+      { id: 'more_realistic', label: '더 사실적으로', prompt: 'Make it more photorealistic with natural details' },
+      { id: 'more_illustration', label: '더 일러스트풍으로', prompt: 'Make it more illustrated/artistic style' },
+      { id: 'film_grain', label: '필름 그레인 추가', prompt: 'Add subtle film grain texture' },
+      { id: 'cinematic', label: '시네마틱', prompt: 'Apply cinematic look with letterbox aspect ratio feel' }
+    ]
+  }
+};
+
+// 작업 모드 설정
+const WORK_MODES = {
+  explore: {
+    id: 'explore',
+    name: '탐색',
+    icon: '🔍',
+    maxSize: 512,
+    quality: 0.6,
+    description: '빠른 변형 생성용 (512px, 60% 품질)'
+  },
+  refine: {
+    id: 'refine',
+    name: '정제',
+    icon: '✨',
+    maxSize: 1024,
+    quality: 0.8,
+    description: '세부 조정용 (1024px, 80% 품질)'
+  },
+  final: {
+    id: 'final',
+    name: '최종',
+    icon: '📸',
+    maxSize: null,
+    quality: 1.0,
+    description: '프로덕션 출력용 (원본 해상도)'
+  }
+};
+
+// 종횡비 프리셋 (캔버스 생성기용)
+const ASPECT_RATIO_PRESETS = [
+  { id: 'square', ratio: '1:1', width: 1, height: 1, label: '정사각형' },
+  { id: 'landscape43', ratio: '4:3', width: 4, height: 3, label: '가로 4:3' },
+  { id: 'landscape169', ratio: '16:9', width: 16, height: 9, label: '가로 16:9' },
+  { id: 'portrait34', ratio: '3:4', width: 3, height: 4, label: '세로 3:4' },
+  { id: 'portrait916', ratio: '9:16', width: 9, height: 16, label: '세로 9:16' }
+];
+
+
+// ===== storage.js =====
+// ===== STORAGE =====
+
+
+function loadFromStorage() {
+  try {
+    const savedApiKey = localStorage.getItem(STORAGE_KEYS.API_KEY);
+    if (savedApiKey) {
+      state.apiKey = savedApiKey;
+      const apiKeyInput = document.getElementById('apiKeyInput');
+      if (apiKeyInput) {
+        apiKeyInput.value = savedApiKey;
+      }
+      return savedApiKey; // API 키를 반환하여 테스트 가능하게 함
+    }
+  } catch (e) {
+    console.error('Failed to load from storage:', e);
+  }
+  return null;
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.API_KEY, state.apiKey);
+  } catch (e) {
+    console.error('Failed to save to storage:', e);
+  }
+}
+
+// 프롬프트 히스토리 저장
+function savePromptHistory() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.PROMPT_HISTORY, JSON.stringify(state.promptHistory));
+  } catch (e) {
+    console.error('Failed to save prompt history:', e);
+  }
+}
+
+// 프롬프트 히스토리 로드
+function loadPromptHistory() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.PROMPT_HISTORY);
+    if (saved) {
+      state.promptHistory = JSON.parse(saved);
+    }
+  } catch (e) {
+    console.error('Failed to load prompt history:', e);
+    state.promptHistory = [];
+  }
+}
+
+// 커스텀 템플릿 저장
+function saveCustomTemplates() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_TEMPLATES, JSON.stringify(state.customTemplates));
+  } catch (e) {
+    console.error('Failed to save custom templates:', e);
+  }
+}
+
+// 커스텀 템플릿 로드
+function loadCustomTemplates() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.CUSTOM_TEMPLATES);
+    if (saved) {
+      state.customTemplates = JSON.parse(saved);
+    }
+  } catch (e) {
+    console.error('Failed to load custom templates:', e);
+    state.customTemplates = {};
+  }
+}
+
+// 설정 저장
+function saveSettings() {
+  try {
+    const settings = {
+      workMode: state.workMode,
+      autoTranslate: state.autoTranslate,
+      thinkingMode: state.thinkingMode
+    };
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+  } catch (e) {
+    console.error('Failed to save settings:', e);
+  }
+}
+
+// 설정 로드
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+    if (saved) {
+      const settings = JSON.parse(saved);
+      if (settings.workMode) state.workMode = settings.workMode;
+      if (settings.autoTranslate !== undefined) state.autoTranslate = settings.autoTranslate;
+      if (settings.thinkingMode !== undefined) state.thinkingMode = settings.thinkingMode;
+    }
+  } catch (e) {
+    console.error('Failed to load settings:', e);
+  }
+}
+
+
+// ===== prompt-builder.js =====
+// ===== PROMPT BUILDER =====
+
+
+// 프롬프트 빌드
+function buildPrompt(templateId, values) {
+  const template = TEMPLATES[templateId] || state.customTemplates[templateId];
+  if (!template) return '';
+
+  let prompt = template.promptTemplate;
+
+  // 각 필드 값을 템플릿에 대입
+  template.fields.forEach(field => {
+    const value = values[field.id];
+    let replacement = '';
+
+    if (field.type === 'checkbox-group' && Array.isArray(value)) {
+      replacement = value.join(', ');
+    } else if (field.type === 'checkbox') {
+      replacement = value ? 'yes' : '';
+    } else {
+      replacement = value || '';
+    }
+
+    // 액션과 위치 필드는 앞에 공백이나 접속사 추가
+    if (field.id === 'action' && replacement) {
+      replacement = ', ' + replacement;
+    }
+    if (field.id === 'location' && replacement) {
+      replacement = ' in ' + replacement;
+    }
+
+    prompt = prompt.replace(new RegExp(`\\{${field.id}\\}`, 'g'), replacement);
+  });
+
+  // 빈 자리표시자와 불필요한 문장부호 정리
+  prompt = prompt
+    .replace(/\{[^}]+\}/g, '') // 남은 자리표시자 제거
+    .replace(/\s+/g, ' ') // 다중 공백 제거
+    .replace(/\s*,\s*,/g, ',') // 중복 쉼표 제거
+    .replace(/,\s*\./g, '.') // 쉼표 후 마침표 정리
+    .replace(/\.\s*\./g, '.') // 중복 마침표 제거
+    .replace(/\s+\./g, '.') // 마침표 전 공백 제거
+    .replace(/^\s*,\s*/g, '') // 시작 쉼표 제거
+    .replace(/,\s*$/g, '') // 끝 쉼표 제거
+    .trim();
+
+  return prompt;
+}
+
+// 프롬프트 미리보기 업데이트
+function updatePromptPreview() {
+  const prompt = buildPrompt(state.currentTemplate, state.fieldValues[state.currentTemplate]);
+  const previewEl = document.getElementById('promptPreview');
+
+  if (!previewEl) return;
+
+  if (prompt && prompt.length > 10) {
+    previewEl.textContent = prompt;
+    previewEl.classList.remove('empty');
+  } else {
+    previewEl.textContent = '필드를 입력하면 프롬프트가 생성됩니다.';
+    previewEl.classList.add('empty');
+  }
+}
+
+// 프롬프트 복사
+async function copyPromptToClipboard() {
+  const prompt = buildPrompt(state.currentTemplate, state.fieldValues[state.currentTemplate]);
+  if (!prompt) return false;
+
+  try {
+    await navigator.clipboard.writeText(prompt);
+    return true;
+  } catch (e) {
+    console.error('Failed to copy prompt:', e);
+    return false;
+  }
+}
+
+// 현재 프롬프트 가져오기
+function getCurrentPrompt() {
+  return buildPrompt(state.currentTemplate, state.fieldValues[state.currentTemplate]);
+}
+
+
+// ===== render-templates.js =====
+// ===== RENDER TEMPLATES =====
+
+
+// 템플릿 탭 렌더링
+function renderTemplateTabs() {
+  const container = document.getElementById('templateTabs');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  // 기본 템플릿 렌더링
+  Object.values(TEMPLATES).forEach(template => {
+    const tab = document.createElement('button');
+    tab.className = `template-tab ${state.currentTemplate === template.id ? 'active' : ''}`;
+    tab.onclick = () => window.handleTemplateChange(template.id);
+    tab.innerHTML = `
+      <span class="icon">${template.icon}</span>
+      <span>${template.name}</span>
+    `;
+    container.appendChild(tab);
+  });
+
+  // 커스텀 템플릿이 있으면 구분선과 커스텀 탭 추가
+  if (Object.keys(state.customTemplates).length > 0) {
+    const divider = document.createElement('div');
+    divider.className = 'template-tab-divider';
+    divider.innerHTML = '|';
+    container.appendChild(divider);
+
+    Object.values(state.customTemplates).forEach(template => {
+      const tab = document.createElement('button');
+      tab.className = `template-tab template-tab-custom ${state.currentTemplate === template.id ? 'active' : ''}`;
+      tab.onclick = () => window.handleTemplateChange(template.id);
+      tab.innerHTML = `
+        <span class="icon">${template.icon}</span>
+        <span>${template.name}</span>
+      `;
+      container.appendChild(tab);
+    });
+  }
+
+  // "새 템플릿" 버튼
+  const addBtn = document.createElement('button');
+  addBtn.className = 'template-tab template-tab-add';
+  addBtn.onclick = () => window.openTemplateEditor();
+  addBtn.innerHTML = `
+    <span class="icon">➕</span>
+    <span>새 템플릿</span>
+  `;
+  container.appendChild(addBtn);
+}
+
+// 템플릿 필드 렌더링
+function renderTemplateFields() {
+  const container = document.getElementById('templateForm');
+  if (!container) return;
+
+  // 기본 또는 커스텀 템플릿 가져오기
+  const template = TEMPLATES[state.currentTemplate] || state.customTemplates[state.currentTemplate];
+
+  if (!template) {
+    container.innerHTML = '<p class="form-help">템플릿을 찾을 수 없습니다.</p>';
+    return;
+  }
+
+  const values = state.fieldValues[state.currentTemplate];
+  container.innerHTML = '';
+
+  // 커스텀 템플릿인 경우 편집/삭제 버튼 표시
+  if (template.isCustom) {
+    const customActions = document.createElement('div');
+    customActions.className = 'custom-template-actions';
+    customActions.innerHTML = `
+      <button class="btn btn-outline btn-sm" onclick="openTemplateEditor('${template.id}')">✏️ 편집</button>
+      <button class="btn btn-outline btn-sm" onclick="duplicateTemplate('${template.id}')">📋 복제</button>
+      <button class="btn btn-outline btn-sm" onclick="exportTemplate('${template.id}')">📤 내보내기</button>
+      <button class="btn btn-outline btn-sm btn-danger" onclick="deleteCustomTemplate('${template.id}')">🗑️ 삭제</button>
+    `;
+    container.appendChild(customActions);
+  } else {
+    // 기본 템플릿 복제 버튼
+    const duplicateBtn = document.createElement('div');
+    duplicateBtn.className = 'template-duplicate-btn';
+    duplicateBtn.innerHTML = `
+      <button class="btn btn-outline btn-sm" onclick="duplicateTemplate('${template.id}')">📋 이 템플릿 복제하여 커스터마이즈</button>
+    `;
+    container.appendChild(duplicateBtn);
+  }
+
+  template.fields.forEach(field => {
+    const group = document.createElement('div');
+    group.className = 'form-group';
+
+    // 라벨
+    const label = document.createElement('label');
+    label.className = 'form-label';
+    label.innerHTML = field.label + (field.required ? ' <span class="required">*</span>' : '');
+    group.appendChild(label);
+
+    // 입력 필드 렌더링
+    let input;
+
+    switch (field.type) {
+      case 'text':
+        input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-input';
+        input.placeholder = field.placeholder || '';
+        input.value = values[field.id] || '';
+        input.oninput = (e) => {
+          state.fieldValues[state.currentTemplate][field.id] = e.target.value;
+          updatePromptPreview();
+        };
+        break;
+
+      case 'textarea':
+        input = document.createElement('textarea');
+        input.className = 'form-textarea';
+        input.placeholder = field.placeholder || '';
+        input.value = values[field.id] || '';
+        input.oninput = (e) => {
+          state.fieldValues[state.currentTemplate][field.id] = e.target.value;
+          updatePromptPreview();
+        };
+        break;
+
+      case 'select':
+        input = document.createElement('select');
+        input.className = 'form-select';
+        field.options.forEach(opt => {
+          const option = document.createElement('option');
+          option.value = opt.value;
+          option.textContent = opt.label;
+          if (values[field.id] === opt.value) {
+            option.selected = true;
+          }
+          input.appendChild(option);
+        });
+        input.onchange = (e) => {
+          state.fieldValues[state.currentTemplate][field.id] = e.target.value;
+          updatePromptPreview();
+        };
+        break;
+
+      case 'checkbox':
+        input = document.createElement('label');
+        input.className = 'form-checkbox-label';
+        input.innerHTML = `
+          <input type="checkbox" ${values[field.id] ? 'checked' : ''}>
+          <span>활성화</span>
+        `;
+        input.querySelector('input').onchange = (e) => {
+          state.fieldValues[state.currentTemplate][field.id] = e.target.checked;
+          updatePromptPreview();
+        };
+        break;
+
+      case 'checkbox-group':
+        input = document.createElement('div');
+        input.className = 'form-checkbox-group';
+        field.options.forEach(opt => {
+          const checkLabel = document.createElement('label');
+          checkLabel.className = 'form-checkbox-label';
+          const isChecked = Array.isArray(values[field.id]) && values[field.id].includes(opt.value);
+          checkLabel.innerHTML = `
+            <input type="checkbox" value="${opt.value}" ${isChecked ? 'checked' : ''}>
+            <span>${opt.label}</span>
+          `;
+          checkLabel.querySelector('input').onchange = (e) => {
+            const currentValues = state.fieldValues[state.currentTemplate][field.id] || [];
+            if (e.target.checked) {
+              state.fieldValues[state.currentTemplate][field.id] = [...currentValues, opt.value];
+            } else {
+              state.fieldValues[state.currentTemplate][field.id] = currentValues.filter(v => v !== opt.value);
+            }
+            updatePromptPreview();
+          };
+          input.appendChild(checkLabel);
+        });
+        break;
+    }
+
+    if (input) {
+      group.appendChild(input);
+    }
+
+    // 도움말
+    if (field.helpText) {
+      const help = document.createElement('p');
+      help.className = 'form-help';
+      help.textContent = field.helpText;
+      group.appendChild(help);
+    }
+
+    container.appendChild(group);
+  });
+
+  updatePromptPreview();
+}
+
+
+// ===== render-result.js =====
+// ===== RENDER RESULT =====
+
+
+// 결과 이미지 렌더링
+function renderResult() {
+  const container = document.getElementById('resultContainer');
+  const historyContainer = document.getElementById('resultHistory');
+
+  if (!container) return;
+
+  // 히스토리 렌더링
+  if (historyContainer) {
+    if (state.resultHistory.length > 0) {
+      historyContainer.classList.remove('hidden');
+      historyContainer.innerHTML = state.resultHistory.map((item, index) => `
+        <div class="result-history-item ${state.selectedResultId === item.id ? 'selected' : ''}"
+             onclick="selectResultHistory('${item.id}')"
+             ondblclick="openImageModal(${index})">
+          <img src="data:${item.image.mimeType};base64,${item.image.data}" alt="히스토리 ${index + 1}">
+        </div>
+      `).join('');
+    } else {
+      historyContainer.classList.add('hidden');
+    }
+  }
+
+  if (state.isLoading) {
+    container.innerHTML = `
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">이미지 생성 중...</div>
+      </div>
+    `;
+    return;
+  }
+
+  if (state.generatedImage) {
+    container.innerHTML = `
+      <img
+        src="data:${state.generatedImage.mimeType};base64,${state.generatedImage.data}"
+        alt="생성된 이미지"
+        class="result-image"
+        style="cursor: pointer;"
+        onclick="openImageModal(${state.resultHistory.length - 1})"
+      >
+      <div class="result-actions">
+        <button class="btn btn-primary" onclick="downloadImage()">
+          💾 다운로드
+        </button>
+        <button class="btn btn-outline" onclick="openImageModal(${state.resultHistory.length - 1})">
+          🔍 확대
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="result-placeholder">
+      <div class="result-placeholder-icon">🎨</div>
+      <div>프롬프트를 입력하고<br>이미지를 생성하세요</div>
+    </div>
+  `;
+}
+
+
+// ===== utils.js =====
+// ===== UTILS =====
+
+// ID 생성 함수들
+function generateImageId() {
+  return 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+function generateSessionId() {
+  return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+}
+
+function generateCustomTemplateId() {
+  return 'custom_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+}
+
+function generateResultId() {
+  return 'result_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+}
+
+function generateHistoryId() {
+  return 'history_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+}
+
+// 포맷팅 함수들
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function formatRelativeTime(timestamp) {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return '방금 전';
+  if (diffMins < 60) return `${diffMins}분 전`;
+  if (diffHours < 24) return `${diffHours}시간 전`;
+  if (diffDays < 7) return `${diffDays}일 전`;
+
+  return date.toLocaleDateString('ko-KR');
+}
+
+// HTML 이스케이프 헬퍼
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  }[c]));
+}
+
+// 에러/성공 메시지 표시
+function showError(message) {
+  const errorDiv = document.getElementById('errorMessage');
+  if (errorDiv) {
+    errorDiv.textContent = message;
+    errorDiv.classList.remove('hidden');
+    setTimeout(() => {
+      errorDiv.classList.add('hidden');
+    }, 5000);
+  }
+}
+
+function showSuccess(message) {
+  const successDiv = document.getElementById('successMessage');
+  if (successDiv) {
+    successDiv.textContent = message;
+    successDiv.classList.remove('hidden');
+    setTimeout(() => {
+      successDiv.classList.add('hidden');
+    }, 3000);
+  }
+}
+
+function hideError() {
+  const errorDiv = document.getElementById('errorMessage');
+  if (errorDiv) {
+    errorDiv.classList.add('hidden');
+  }
+}
+
+// 디바운스 함수
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+
+// ===== render-images.js =====
+// ===== RENDER IMAGES =====
+
+
+// 첨부 이미지 렌더링
+function renderAttachedImages() {
+  const grid = document.getElementById('thumbnailGrid');
+  const countEl = document.getElementById('attachedCount');
+  const infoEl = document.getElementById('selectedImageInfo');
+
+  if (!grid || !countEl) return;
+
+  countEl.textContent = state.attachedImages.length;
+
+  if (state.attachedImages.length === 0) {
+    grid.innerHTML = '';
+    if (infoEl) infoEl.classList.add('hidden');
+    return;
+  }
+
+  grid.innerHTML = state.attachedImages.map((img, index) => `
+    <div class="thumbnail-item ${state.selectedImageId === img.id ? 'selected' : ''}"
+         onclick="selectAttachedImage('${img.id}')">
+      <img src="${img.thumbnail}" alt="첨부 ${index + 1}">
+      <span class="thumbnail-index">${index + 1}</span>
+      <button class="thumbnail-delete" onclick="event.stopPropagation(); deleteAttachedImage('${img.id}')">&times;</button>
+    </div>
+  `).join('');
+
+  // 선택된 이미지 정보 표시
+  if (state.selectedImageId && infoEl) {
+    const selectedImg = state.attachedImages.find(img => img.id === state.selectedImageId);
+    if (selectedImg) {
+      infoEl.classList.remove('hidden');
+      const previewEl = document.getElementById('selectedImagePreview');
+      const metaEl = document.getElementById('selectedImageMeta');
+
+      if (previewEl) {
+        previewEl.src = `data:image/jpeg;base64,${selectedImg.base64}`;
+      }
+      if (metaEl) {
+        metaEl.innerHTML = `
+          <p>📄 ${selectedImg.file.name}</p>
+          <p>📐 ${selectedImg.originalWidth}×${selectedImg.originalHeight} → ${selectedImg.width}×${selectedImg.height}</p>
+          <p>💾 ${formatFileSize(selectedImg.originalSize)} → ${formatFileSize(selectedImg.processedSize)}</p>
+        `;
+      }
+    }
+  } else if (infoEl) {
+    infoEl.classList.add('hidden');
+  }
+}
+
+// 이미지 모달 렌더링
+function renderImageModal() {
+  const modal = document.getElementById('imageModal');
+  const modalImage = document.getElementById('modalImage');
+  const modalPrompt = document.getElementById('modalPrompt');
+  const prevBtn = document.getElementById('modalPrev');
+  const nextBtn = document.getElementById('modalNext');
+  const modalCounter = document.getElementById('modalCounter');
+
+  if (!modal || state.imageModalIndex < 0) {
+    if (modal) modal.classList.remove('active');
+    return;
+  }
+
+  const item = state.resultHistory[state.imageModalIndex];
+  if (!item) return;
+
+  modal.classList.add('active');
+
+  if (modalImage) {
+    modalImage.src = `data:${item.image.mimeType};base64,${item.image.data}`;
+  }
+
+  if (modalPrompt) {
+    modalPrompt.textContent = item.translatedPrompt || item.prompt;
+  }
+
+  if (prevBtn) {
+    prevBtn.disabled = state.imageModalIndex <= 0;
+  }
+
+  if (nextBtn) {
+    nextBtn.disabled = state.imageModalIndex >= state.resultHistory.length - 1;
+  }
+
+  if (modalCounter) {
+    modalCounter.textContent = `${state.imageModalIndex + 1} / ${state.resultHistory.length}`;
+  }
+}
+
+
+// ===== render-edit-session.js =====
+// ===== RENDER EDIT SESSION =====
+
+
+// 편집 세션 렌더링
+function renderEditSession() {
+  const sessionEl = document.getElementById('editSession');
+  const historyEl = document.getElementById('editHistory');
+
+  if (!sessionEl) return;
+
+  if (state.editSession.editHistory.length === 0) {
+    sessionEl.classList.add('hidden');
+    return;
+  }
+
+  sessionEl.classList.remove('hidden');
+
+  // 편집 히스토리 렌더링
+  if (historyEl) {
+    historyEl.innerHTML = state.editSession.editHistory.map((item, index) => `
+      <div class="edit-history-item ${index === state.editSession.currentEditIndex ? 'active' : ''}"
+           onclick="selectEditHistoryItem(${index})">
+        <span class="step-number">${item.step}</span>
+        <div class="step-content">
+          <div class="step-label">단계 ${item.step}</div>
+          <div class="step-text">${item.request}</div>
+        </div>
+        ${item.image ? `
+          <div class="step-thumb">
+            <img src="data:${item.image.mimeType};base64,${item.image.data}" alt="단계 ${item.step}">
+          </div>
+        ` : ''}
+      </div>
+    `).join('');
+  }
+
+  // 빠른 수정 프리셋 렌더링
+  renderPresets();
+}
+
+// 빠른 수정 프리셋 렌더링
+function renderPresets() {
+  const categoriesEl = document.getElementById('presetCategories');
+  const itemsEl = document.getElementById('presetItems');
+
+  if (!categoriesEl || !itemsEl) return;
+
+  // 카테고리 버튼 렌더링
+  categoriesEl.innerHTML = Object.values(QUICK_PRESETS).map(category => `
+    <button class="preset-category-btn ${state.presetCategory === category.id ? 'active' : ''}"
+            onclick="setPresetCategory('${category.id}')">
+      ${category.name}
+    </button>
+  `).join('');
+
+  // 현재 카테고리의 프리셋 아이템 렌더링
+  const currentCategory = QUICK_PRESETS[state.presetCategory];
+  if (currentCategory) {
+    itemsEl.innerHTML = currentCategory.presets.map(preset => `
+      <button class="preset-item" onclick="applyPreset('${preset.id}')">
+        ${preset.label}
+      </button>
+    `).join('');
+  }
+}
+
+
+// ===== template-handlers.js =====
+// ===== TEMPLATE HANDLERS =====
+
+
+// 템플릿 변경 핸들러
+function handleTemplateChange(templateId) {
+  state.currentTemplate = templateId;
+  renderTemplateTabs();
+  renderTemplateFields();
+}
+
+// 폼 리셋
+function resetForm() {
+  const template = TEMPLATES[state.currentTemplate] || state.customTemplates[state.currentTemplate];
+  if (!template) return;
+
+  template.fields.forEach(field => {
+    if (field.defaultValue !== undefined) {
+      state.fieldValues[state.currentTemplate][field.id] = field.defaultValue;
+    } else if (field.type === 'checkbox-group') {
+      state.fieldValues[state.currentTemplate][field.id] = [];
+    } else if (field.type === 'checkbox') {
+      state.fieldValues[state.currentTemplate][field.id] = false;
+    } else {
+      state.fieldValues[state.currentTemplate][field.id] = '';
+    }
+  });
+  renderTemplateFields();
+}
+
+
+// ===== image-processing.js =====
+// ===== IMAGE PROCESSING MODULE =====
+
+
+// 이미지 처리 (리사이즈, 압축, 썸네일 생성)
+async function processImage(file, mode) {
+  const config = WORK_MODES[mode];
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const originalWidth = img.width;
+        const originalHeight = img.height;
+        const originalSize = file.size;
+
+        // 최종 모드는 원본 유지 (하지만 base64로 변환)
+        if (!config.maxSize || (img.width <= config.maxSize && img.height <= config.maxSize)) {
+          // 리사이즈 불필요
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+
+          const base64Full = canvas.toDataURL('image/jpeg', config.quality);
+          const base64Data = base64Full.split(',')[1];
+
+          // 썸네일 생성
+          const thumbnail = createThumbnail(img, img.width, img.height);
+
+          resolve({
+            id: generateImageId(),
+            file: file,
+            originalSize: originalSize,
+            processedSize: Math.round(base64Data.length * 0.75),
+            base64: base64Data,
+            thumbnail: thumbnail,
+            width: img.width,
+            height: img.height,
+            originalWidth: originalWidth,
+            originalHeight: originalHeight
+          });
+        } else {
+          // 리사이즈 필요
+          let newWidth, newHeight;
+          if (img.width > img.height) {
+            newWidth = config.maxSize;
+            newHeight = Math.round(img.height * (config.maxSize / img.width));
+          } else {
+            newHeight = config.maxSize;
+            newWidth = Math.round(img.width * (config.maxSize / img.height));
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = newWidth;
+          canvas.height = newHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+          const base64Full = canvas.toDataURL('image/jpeg', config.quality);
+          const base64Data = base64Full.split(',')[1];
+
+          // 썸네일 생성
+          const thumbnail = createThumbnailFromCanvas(canvas, newWidth, newHeight);
+
+          resolve({
+            id: generateImageId(),
+            file: file,
+            originalSize: originalSize,
+            processedSize: Math.round(base64Data.length * 0.75),
+            base64: base64Data,
+            thumbnail: thumbnail,
+            width: newWidth,
+            height: newHeight,
+            originalWidth: originalWidth,
+            originalHeight: originalHeight
+          });
+        }
+      };
+      img.onerror = () => reject(new Error('이미지 로드 실패'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('파일 읽기 실패'));
+    reader.readAsDataURL(file);
+  });
+}
+
+// 썸네일 생성 헬퍼 (Image 요소에서)
+function createThumbnail(img, width, height) {
+  const thumbCanvas = document.createElement('canvas');
+  const thumbSize = 100;
+  thumbCanvas.width = thumbSize;
+  thumbCanvas.height = thumbSize;
+  const thumbCtx = thumbCanvas.getContext('2d');
+
+  // 정사각형 크롭
+  const minDim = Math.min(width, height);
+  const sx = (width - minDim) / 2;
+  const sy = (height - minDim) / 2;
+  thumbCtx.drawImage(img, sx, sy, minDim, minDim, 0, 0, thumbSize, thumbSize);
+
+  return thumbCanvas.toDataURL('image/jpeg', 0.7);
+}
+
+// 썸네일 생성 헬퍼 (Canvas 요소에서)
+function createThumbnailFromCanvas(canvas, width, height) {
+  const thumbCanvas = document.createElement('canvas');
+  const thumbSize = 100;
+  thumbCanvas.width = thumbSize;
+  thumbCanvas.height = thumbSize;
+  const thumbCtx = thumbCanvas.getContext('2d');
+
+  const minDim = Math.min(width, height);
+  const sx = (width - minDim) / 2;
+  const sy = (height - minDim) / 2;
+  thumbCtx.drawImage(canvas, sx, sy, minDim, minDim, 0, 0, thumbSize, thumbSize);
+
+  return thumbCanvas.toDataURL('image/jpeg', 0.7);
+}
+
+// 이미지 다운로드
+function downloadImage(base64Data, mimeType, filename = 'generated-image') {
+  const link = document.createElement('a');
+  link.href = `data:${mimeType};base64,${base64Data}`;
+  link.download = `${filename}.${mimeType.split('/')[1] || 'png'}`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// base64 이미지를 Blob으로 변환
+function base64ToBlob(base64Data, mimeType = 'image/png') {
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  return new Blob([byteArray], { type: mimeType });
+}
+
+// 클립보드에 이미지 복사
+async function copyImageToClipboard(base64Data, mimeType) {
+  try {
+    const blob = base64ToBlob(base64Data, mimeType);
+    await navigator.clipboard.write([
+      new ClipboardItem({ [mimeType]: blob })
+    ]);
+    return true;
+  } catch (e) {
+    console.error('Failed to copy image:', e);
+    return false;
+  }
+}
+
+
+// ===== image-handlers.js =====
+// ===== IMAGE HANDLERS =====
+
+
+// 작업 모드 설정
+function setWorkMode(mode) {
+  state.workMode = mode;
+
+  // UI 업데이트
+  document.querySelectorAll('.work-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+
+  // 기존 첨부 이미지 재처리
+  if (state.attachedImages.length > 0) {
+    reprocessAttachedImages();
+  }
+}
+
+// 첨부 이미지 재처리
+async function reprocessAttachedImages() {
+  const files = state.attachedImages.map(img => img.file);
+  state.attachedImages = [];
+
+  for (const file of files) {
+    try {
+      const processed = await processImage(file, state.workMode);
+      state.attachedImages.push(processed);
+    } catch (e) {
+      console.error('Image reprocessing failed:', e);
+    }
+  }
+
+  renderAttachedImages();
+}
+
+// 파일 선택 핸들러
+async function handleFileSelect(event) {
+  const files = Array.from(event.target.files);
+  await addImages(files);
+  event.target.value = ''; // 같은 파일 재선택 가능하도록
+}
+
+// 이미지 추가
+async function addImages(files) {
+  const validTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/jpg'];
+  const maxImages = 14;
+
+  for (const file of files) {
+    if (state.attachedImages.length >= maxImages) {
+      showError(`최대 ${maxImages}개의 이미지만 첨부할 수 있습니다.`);
+      break;
+    }
+
+    if (!validTypes.includes(file.type)) {
+      showError(`지원하지 않는 형식: ${file.name}`);
+      continue;
+    }
+
+    try {
+      const processed = await processImage(file, state.workMode);
+      state.attachedImages.push(processed);
+    } catch (e) {
+      showError(`이미지 처리 실패: ${file.name}`);
+    }
+  }
+
+  if (state.attachedImages.length > 0 && !state.selectedImageId) {
+    state.selectedImageId = state.attachedImages[0].id;
+  }
+
+  renderAttachedImages();
+}
+
+// 첨부 이미지 선택
+function selectAttachedImage(imageId) {
+  state.selectedImageId = imageId;
+  renderAttachedImages();
+}
+
+// 첨부 이미지 삭제
+function deleteAttachedImage(imageId) {
+  state.attachedImages = state.attachedImages.filter(img => img.id !== imageId);
+
+  if (state.selectedImageId === imageId) {
+    state.selectedImageId = state.attachedImages.length > 0 ? state.attachedImages[0].id : null;
+  }
+
+  renderAttachedImages();
+}
+
+// 선택된 이미지 삭제
+function deleteSelectedImage() {
+  if (state.selectedImageId) {
+    deleteAttachedImage(state.selectedImageId);
+  }
+}
+
+// 원본 이미지 보기
+function viewOriginalImage() {
+  if (!state.selectedImageId) return;
+
+  const img = state.attachedImages.find(i => i.id === state.selectedImageId);
+  if (img) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const modal = document.getElementById('imageModal');
+      const modalImg = document.getElementById('imageModalImg');
+      const modalInfo = document.getElementById('imageModalInfo');
+
+      if (modalImg) modalImg.src = e.target.result;
+      if (modalInfo) modalInfo.textContent = `원본: ${img.originalWidth}×${img.originalHeight}`;
+      if (modal) modal.classList.add('active');
+      state.imageModalIndex = -1; // 첨부 이미지 모드
+    };
+    reader.readAsDataURL(img.file);
+  }
+}
+
+// 이미지 다운로드
+function downloadImage() {
+  if (!state.generatedImage) return;
+
+  const link = document.createElement('a');
+  link.href = `data:${state.generatedImage.mimeType};base64,${state.generatedImage.data}`;
+  link.download = `nano-banana-${Date.now()}.png`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// 결과 히스토리 선택
+function selectResultHistory(historyId) {
+  const item = state.resultHistory.find(h => h.id === historyId);
+  if (item) {
+    state.selectedResultId = historyId;
+    state.generatedImage = item.image;
+    // renderResult는 main.js에서 호출
+  }
+}
+
+
+// ===== api.js =====
+// ===== API MODULE =====
+
+
+// API 키 테스트
+async function testApiKey(apiKey) {
+  try {
+    const response = await fetch(
+      `${API_ENDPOINTS.TEXT}?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: 'Hello' }] }]
+        })
+      }
+    );
+    return response.ok;
+  } catch (e) {
+    console.error('API test failed:', e);
+    return false;
+  }
+}
+
+// 이미지 생성 API 호출
+async function callImageApi(prompt, apiKey, attachedImages = []) {
+  // 요청 파츠 구성
+  const parts = [{ text: prompt }];
+
+  // 첨부 이미지가 있으면 추가
+  for (const img of attachedImages) {
+    if (img.base64) {
+      parts.push({
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: img.base64
+        }
+      });
+    }
+  }
+
+  const response = await fetch(
+    `${API_ENDPOINTS.IMAGE}?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: parts
+        }],
+        generationConfig: {
+          responseModalities: ['TEXT', 'IMAGE']
+        }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = API_ERRORS[response.status] || `오류가 발생했습니다 (${response.status})`;
+    throw new Error(errorText);
+  }
+
+  const data = await response.json();
+
+  // 응답에서 이미지 추출
+  if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+    const parts = data.candidates[0].content.parts;
+    for (const part of parts) {
+      if (part.inlineData) {
+        return {
+          mimeType: part.inlineData.mimeType,
+          data: part.inlineData.data
+        };
+      }
+    }
+  }
+
+  throw new Error('이미지를 생성하지 못했습니다. 다른 프롬프트를 시도해보세요.');
+}
+
+
+// ===== translation.js =====
+// ===== TRANSLATION MODULE =====
+
+
+// 한국어 → 영어 번역
+async function translateToEnglish(koreanText, apiKey) {
+  try {
+    const response = await fetch(
+      `${API_ENDPOINTS.TEXT}?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `Translate the following Korean text to English. This is a prompt for image generation, so preserve all descriptive details precisely. Only output the translated text, nothing else.\n\nKorean text:\n${koreanText}`
+            }]
+          }]
+        })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('번역 실패');
+    }
+
+    const data = await response.json();
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      const text = data.candidates[0].content.parts[0].text;
+      return text.trim();
+    }
+    throw new Error('번역 결과 없음');
+  } catch (e) {
+    console.error('Translation failed:', e);
+    throw e;
+  }
+}
+
+// 한국어 포함 여부 확인
+function containsKorean(text) {
+  const koreanRegex = /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/;
+  return koreanRegex.test(text);
+}
+
+
+// ===== generation-handlers.js =====
+// ===== GENERATION HANDLERS =====
+
+
+// Thinking 프리픽스 적용
+function applyThinkingPrefix(prompt) {
+  if (state.thinkingMode) {
+    return THINKING_PREFIX + prompt;
+  }
+  return prompt;
+}
+
+// 번역 상태 업데이트
+function updateTranslateStatus(status, message) {
+  const statusEl = document.getElementById('translateStatus');
+  const textEl = document.getElementById('translateStatusText');
+
+  if (!statusEl || !textEl) return;
+
+  if (status === 'hidden') {
+    statusEl.classList.add('hidden');
+    return;
+  }
+
+  statusEl.classList.remove('hidden');
+  statusEl.className = 'translate-status ' + status;
+  textEl.textContent = message;
+}
+
+// 이미지 생성
+async function generateImage() {
+  // API 키 확인
+  if (!state.apiKey) {
+    showError('API 키를 먼저 설정해주세요.');
+    window.openSettingsModal();
+    return;
+  }
+
+  // 프롬프트 생성
+  let prompt = buildPrompt(state.currentTemplate, state.fieldValues[state.currentTemplate]);
+  if (!prompt || prompt.length < 10) {
+    showError('프롬프트가 너무 짧습니다. 더 많은 필드를 입력해주세요.');
+    return;
+  }
+
+  // 로딩 시작
+  state.isLoading = true;
+  state.error = null;
+  hideError();
+  renderResult();
+
+  const generateBtn = document.getElementById('generateBtn');
+  if (generateBtn) generateBtn.disabled = true;
+
+  try {
+    // 자동 번역이 활성화된 경우
+    let finalPrompt = prompt;
+    let translatedPrompt = '';
+
+    if (state.autoTranslate && containsKorean(prompt)) {
+      updateTranslateStatus('translating', '번역 중...');
+      try {
+        translatedPrompt = await translateToEnglish(prompt, state.apiKey);
+        finalPrompt = translatedPrompt;
+        state.translatedPrompt = translatedPrompt;
+        updateTranslateStatus('translated', '번역 완료');
+        updatePromptPreview();
+      } catch (e) {
+        console.error('Translation failed, using original:', e);
+        updateTranslateStatus('error', '번역 실패, 원본 사용');
+      }
+    }
+
+    // Thinking 모드 적용
+    finalPrompt = applyThinkingPrefix(finalPrompt);
+
+    // 이미지 생성 API 호출 (첨부 이미지 포함)
+    const image = await callImageApi(finalPrompt, state.apiKey, state.attachedImages);
+    state.generatedImage = image;
+
+    // 히스토리에 추가
+    const historyItem = {
+      id: generateResultId(),
+      prompt: prompt,
+      translatedPrompt: translatedPrompt,
+      image: image,
+      timestamp: new Date().toISOString()
+    };
+    state.resultHistory.push(historyItem);
+    state.selectedResultId = historyItem.id;
+
+    // 편집 세션 초기화 (새 이미지 생성 시 새 세션 시작)
+    if (window.initEditSession) {
+      window.initEditSession(finalPrompt, image);
+    }
+
+    // 프롬프트 히스토리에 저장
+    if (window.savePromptToHistory) {
+      window.savePromptToHistory(prompt, translatedPrompt, state.currentTemplate);
+    }
+
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    state.isLoading = false;
+    renderResult();
+    if (generateBtn) generateBtn.disabled = false;
+  }
+}
+
+// 프롬프트 복사
+function copyPrompt() {
+  let textToCopy;
+  if (state.promptTab === 'translated' && state.translatedPrompt) {
+    textToCopy = state.translatedPrompt;
+  } else {
+    textToCopy = buildPrompt(state.currentTemplate, state.fieldValues[state.currentTemplate]);
+  }
+
+  if (!textToCopy) {
+    showError('복사할 프롬프트가 없습니다.');
+    return;
+  }
+
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    // 복사 성공 피드백
+    const btn = document.querySelector('.prompt-preview-header .btn-icon');
+    if (btn) {
+      const originalText = btn.textContent;
+      btn.textContent = '✅';
+      setTimeout(() => {
+        btn.textContent = originalText;
+      }, 1500);
+    }
+  }).catch(e => {
+    showError('클립보드 복사에 실패했습니다.');
+  });
+}
+
+// 번역 토글 핸들러
+function handleTranslateToggle(checked) {
+  state.autoTranslate = checked;
+  state.translatedPrompt = '';
+
+  // 번역 탭 표시/숨김
+  const promptTabs = document.getElementById('promptTabs');
+  if (promptTabs) {
+    if (checked) {
+      promptTabs.style.display = 'flex';
+    } else {
+      promptTabs.style.display = 'none';
+      state.promptTab = 'original';
+      updateTranslateStatus('hidden', '');
+    }
+  }
+
+  updatePromptPreview();
+}
+
+// 프롬프트 탭 설정
+function setPromptTab(tab) {
+  state.promptTab = tab;
+
+  document.querySelectorAll('.prompt-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+
+  updatePromptPreview();
+}
+
+
+// ===== modal-handlers.js =====
+// ===== MODAL HANDLERS =====
+
+
+// 설정 모달 열기
+function openSettingsModal() {
+  const modal = document.getElementById('settingsModal');
+  const apiKeyInput = document.getElementById('apiKeyInput');
+
+  if (modal) modal.classList.add('active');
+  if (apiKeyInput) apiKeyInput.value = state.apiKey;
+}
+
+// 설정 모달 닫기
+function closeSettingsModal() {
+  const modal = document.getElementById('settingsModal');
+  if (modal) modal.classList.remove('active');
+}
+
+// API 키 표시/숨김 토글
+function toggleApiKeyVisibility() {
+  const input = document.getElementById('apiKeyInput');
+  if (input) {
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+}
+
+// API 연결 테스트
+async function testApiConnection(silent = false) {
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
+
+  if (!apiKey) {
+    if (!silent) {
+      const resultEl = document.getElementById('apiTestResult');
+      if (resultEl) {
+        resultEl.innerHTML = `
+          <div class="error-message">API 키를 입력해주세요.</div>
+        `;
+      }
+    }
+    return;
+  }
+
+  // 테스트 중 상태
+  updateApiStatus('testing');
+  const testBtn = document.getElementById('testApiBtn');
+  if (testBtn) testBtn.disabled = true;
+
+  if (!silent) {
+    const resultEl = document.getElementById('apiTestResult');
+    if (resultEl) {
+      resultEl.innerHTML = `
+        <div class="api-status testing">
+          <span class="status-dot"></span>
+          <span>연결 테스트 중...</span>
+        </div>
+      `;
+    }
+  }
+
+  const isValid = await testApiKey(apiKey);
+
+  if (testBtn) testBtn.disabled = false;
+
+  if (isValid) {
+    state.apiKey = apiKey;
+    updateApiStatus('connected');
+    if (!silent) {
+      const resultEl = document.getElementById('apiTestResult');
+      if (resultEl) {
+        resultEl.innerHTML = `
+          <div class="success-message">API 연결 성공!</div>
+        `;
+      }
+    }
+  } else {
+    updateApiStatus('disconnected');
+    if (!silent) {
+      const resultEl = document.getElementById('apiTestResult');
+      if (resultEl) {
+        resultEl.innerHTML = `
+          <div class="error-message">API 연결 실패. 키를 확인해주세요.</div>
+        `;
+      }
+    }
+  }
+}
+
+// API 키 저장
+function saveApiKey() {
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
+
+  state.apiKey = apiKey;
+  saveToStorage();
+
+  if (apiKey) {
+    testApiConnection(true);
+  } else {
+    updateApiStatus('disconnected');
+  }
+
+  closeSettingsModal();
+}
+
+// API 상태 업데이트
+function updateApiStatus(status) {
+  state.apiStatus = status;
+  const statusEl = document.getElementById('apiStatus');
+  const textEl = document.getElementById('apiStatusText');
+
+  if (!statusEl || !textEl) return;
+
+  statusEl.className = 'api-status ' + status;
+
+  switch (status) {
+    case 'connected':
+      textEl.textContent = 'API 연결됨';
+      break;
+    case 'testing':
+      textEl.textContent = '테스트 중...';
+      break;
+    default:
+      textEl.textContent = 'API 미연결';
+  }
+}
+
+// 이미지 모달 열기
+function openImageModal(index) {
+  if (index < 0 || index >= state.resultHistory.length) return;
+
+  state.imageModalIndex = index;
+  const item = state.resultHistory[index];
+
+  const modalImg = document.getElementById('imageModalImg');
+  const modalInfo = document.getElementById('imageModalInfo');
+  const modal = document.getElementById('imageModal');
+
+  if (modalImg) {
+    modalImg.src = `data:${item.image.mimeType};base64,${item.image.data}`;
+  }
+
+  if (modalInfo) {
+    let info = '';
+    if (item.prompt) {
+      info = item.prompt.substring(0, 200);
+      if (item.prompt.length > 200) info += '...';
+    }
+    modalInfo.textContent = info;
+  }
+
+  if (modal) modal.classList.add('active');
+}
+
+// 이미지 모달 닫기
+function closeImageModal() {
+  const modal = document.getElementById('imageModal');
+  if (modal) modal.classList.remove('active');
+  state.imageModalIndex = -1;
+}
+
+// 이미지 모달 네비게이션
+function navigateImageModal(direction) {
+  if (state.imageModalIndex < 0) return;
+
+  const newIndex = state.imageModalIndex + direction;
+  if (newIndex >= 0 && newIndex < state.resultHistory.length) {
+    openImageModal(newIndex);
+  }
+}
+
+// 모달 이미지 다운로드
+function downloadModalImage() {
+  if (state.imageModalIndex < 0 || state.imageModalIndex >= state.resultHistory.length) return;
+
+  const item = state.resultHistory[state.imageModalIndex];
+  const link = document.createElement('a');
+  link.href = `data:${item.image.mimeType};base64,${item.image.data}`;
+  link.download = `nano-banana-${Date.now()}.png`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// 프롬프트 재사용
+function reusePrompt() {
+  if (state.imageModalIndex < 0 || state.imageModalIndex >= state.resultHistory.length) return;
+
+  const item = state.resultHistory[state.imageModalIndex];
+
+  closeImageModal();
+
+  // 프롬프트를 클립보드에 복사
+  navigator.clipboard.writeText(item.prompt).then(() => {
+    showError('프롬프트가 클립보드에 복사되었습니다. 필드에 붙여넣기 하세요.');
+    setTimeout(hideError, 3000);
+  });
+}
+
+
+// ===== edit-handlers.js =====
+// ===== EDIT HANDLERS =====
+
+
+// 새 세션 시작
+function startNewSession() {
+  state.editSession = {
+    sessionId: generateSessionId(),
+    basePrompt: '',
+    editHistory: [],
+    currentEditIndex: -1
+  };
+
+  const requestInput = document.getElementById('editRequestInput');
+  if (requestInput) requestInput.value = '';
+
+  renderEditSession();
+}
+
+// 편집 세션 초기화
+function initEditSession(prompt, image) {
+  if (!state.editSession.sessionId) {
+    state.editSession.sessionId = generateSessionId();
+  }
+
+  state.editSession.basePrompt = prompt;
+
+  const historyItem = {
+    id: 'edit_' + Date.now(),
+    step: 1,
+    request: '원본 생성',
+    prompt: prompt,
+    image: image,
+    timestamp: new Date().toISOString()
+  };
+
+  state.editSession.editHistory = [historyItem];
+  state.editSession.currentEditIndex = 0;
+
+  renderEditSession();
+}
+
+// 편집 히스토리 추가
+function addEditHistory(request, prompt, image) {
+  const step = state.editSession.editHistory.length + 1;
+
+  const historyItem = {
+    id: 'edit_' + Date.now(),
+    step: step,
+    request: request,
+    prompt: prompt,
+    image: image,
+    timestamp: new Date().toISOString()
+  };
+
+  state.editSession.editHistory.push(historyItem);
+  state.editSession.currentEditIndex = state.editSession.editHistory.length - 1;
+
+  renderEditSession();
+}
+
+// 편집 히스토리 항목 선택
+function selectEditHistoryItem(index) {
+  if (index >= 0 && index < state.editSession.editHistory.length) {
+    state.editSession.currentEditIndex = index;
+
+    const item = state.editSession.editHistory[index];
+    state.generatedImage = item.image;
+
+    renderEditSession();
+    renderResult();
+  }
+}
+
+// 편집 요청 입력 클리어
+function clearEditRequest() {
+  const requestInput = document.getElementById('editRequestInput');
+  if (requestInput) requestInput.value = '';
+}
+
+// 편집 요청 적용
+async function applyEditRequest() {
+  const requestInput = document.getElementById('editRequestInput');
+  const editRequest = requestInput ? requestInput.value.trim() : '';
+
+  if (!editRequest) {
+    showError('수정 요청을 입력해주세요.');
+    return;
+  }
+
+  if (!state.apiKey) {
+    showError('API 키를 먼저 설정해주세요.');
+    window.openSettingsModal();
+    return;
+  }
+
+  if (state.editSession.editHistory.length === 0) {
+    showError('먼저 이미지를 생성해주세요.');
+    return;
+  }
+
+  // 현재 편집 단계의 이미지와 프롬프트 가져오기
+  const currentItem = state.editSession.editHistory[state.editSession.currentEditIndex];
+
+  // 수정 프롬프트 생성
+  const editPrompt = `Based on the previous image, please modify it according to this request: ${editRequest}
+
+Previous prompt for context: ${currentItem.prompt}`;
+
+  // 로딩 시작
+  state.isLoading = true;
+  state.error = null;
+  hideError();
+  renderResult();
+
+  const applyBtn = document.getElementById('applyEditBtn');
+  if (applyBtn) applyBtn.disabled = true;
+
+  try {
+    // Thinking 모드 적용
+    let finalPrompt = applyThinkingPrefix(editPrompt);
+
+    // 번역 적용
+    if (state.autoTranslate && containsKorean(finalPrompt)) {
+      updateTranslateStatus('translating', '번역 중...');
+      try {
+        const translated = await translateToEnglish(finalPrompt, state.apiKey);
+        finalPrompt = translated;
+        updateTranslateStatus('translated', '번역 완료');
+      } catch (e) {
+        console.error('Translation failed, using original:', e);
+        updateTranslateStatus('error', '번역 실패, 원본 사용');
+      }
+    }
+
+    // 이전 이미지를 첨부하여 API 호출
+    const attachments = [{
+      base64: currentItem.image.data
+    }];
+
+    const image = await callImageApi(finalPrompt, state.apiKey, attachments);
+    state.generatedImage = image;
+
+    // 편집 히스토리에 추가
+    addEditHistory(editRequest, finalPrompt, image);
+
+    // 결과 히스토리에도 추가
+    const historyItem = {
+      id: generateResultId(),
+      prompt: finalPrompt,
+      translatedPrompt: '',
+      image: image,
+      timestamp: new Date().toISOString()
+    };
+    state.resultHistory.push(historyItem);
+    state.selectedResultId = historyItem.id;
+
+    // 입력 필드 초기화
+    if (requestInput) requestInput.value = '';
+
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    state.isLoading = false;
+    renderResult();
+    if (applyBtn) applyBtn.disabled = false;
+  }
+}
+
+// 프리셋 카테고리 설정
+function setPresetCategory(categoryId) {
+  state.presetCategory = categoryId;
+  renderPresets();
+}
+
+// 프리셋 적용
+async function applyPreset(presetId) {
+  const category = QUICK_PRESETS[state.presetCategory];
+  if (!category) return;
+
+  const preset = category.presets.find(p => p.id === presetId);
+  if (!preset) return;
+
+  // 프리셋 프롬프트를 편집 요청으로 적용
+  const requestInput = document.getElementById('editRequestInput');
+  if (requestInput) {
+    requestInput.value = preset.prompt;
+  }
+
+  // 자동으로 적용
+  await applyEditRequest();
+}
+
+// Thinking 모드 토글
+function toggleThinkingMode() {
+  state.thinkingMode = !state.thinkingMode;
+
+  const toggle = document.getElementById('thinkingToggle');
+  const checkbox = document.getElementById('thinkingCheckbox');
+
+  if (state.thinkingMode) {
+    if (toggle) toggle.classList.add('active');
+    if (checkbox) checkbox.checked = true;
+  } else {
+    if (toggle) toggle.classList.remove('active');
+    if (checkbox) checkbox.checked = false;
+  }
+
+  // LocalStorage에 저장
+  try {
+    localStorage.setItem('nano_banana_thinking_mode', state.thinkingMode ? 'true' : 'false');
+  } catch (e) {
+    console.error('Failed to save thinking mode:', e);
+  }
+}
+
+// Thinking 모드 로드
+function loadThinkingMode() {
+  try {
+    const saved = localStorage.getItem('nano_banana_thinking_mode');
+    if (saved === 'true') {
+      state.thinkingMode = true;
+      const toggle = document.getElementById('thinkingToggle');
+      const checkbox = document.getElementById('thinkingCheckbox');
+      if (toggle) toggle.classList.add('active');
+      if (checkbox) checkbox.checked = true;
+    }
+  } catch (e) {
+    console.error('Failed to load thinking mode:', e);
+  }
+}
+
+
+// ===== prompt-history.js =====
+// ===== PROMPT HISTORY =====
+
+
+const MAX_PROMPT_HISTORY = 100;
+
+// 프롬프트 히스토리에 저장
+function savePromptToHistory(prompt, translatedPrompt, templateId) {
+  const historyItem = {
+    id: 'ph_' + Date.now(),
+    prompt: prompt,
+    translatedPrompt: translatedPrompt || '',
+    templateId: templateId,
+    timestamp: new Date().toISOString()
+  };
+
+  // 중복 제거 (같은 프롬프트가 있으면 기존 것 삭제)
+  state.promptHistory = state.promptHistory.filter(h => h.prompt !== prompt);
+
+  // 맨 앞에 추가
+  state.promptHistory.unshift(historyItem);
+
+  // 최대 개수 제한
+  if (state.promptHistory.length > MAX_PROMPT_HISTORY) {
+    state.promptHistory = state.promptHistory.slice(0, MAX_PROMPT_HISTORY);
+  }
+
+  savePromptHistory();
+}
+
+// 프롬프트 히스토리 저장
+function savePromptHistory() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.PROMPT_HISTORY, JSON.stringify(state.promptHistory));
+  } catch (e) {
+    console.error('Failed to save prompt history:', e);
+    // 용량 초과 시 오래된 항목 삭제
+    if (e.name === 'QuotaExceededError') {
+      state.promptHistory = state.promptHistory.slice(0, 50);
+      savePromptHistory();
+    }
+  }
+}
+
+// 프롬프트 히스토리 로드
+function loadPromptHistory() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.PROMPT_HISTORY);
+    if (saved) {
+      state.promptHistory = JSON.parse(saved);
+    }
+  } catch (e) {
+    console.error('Failed to load prompt history:', e);
+    state.promptHistory = [];
+  }
+}
+
+// 프롬프트 히스토리 모달 열기
+function openPromptHistory() {
+  const modal = document.getElementById('promptHistoryModal');
+  state.promptHistorySearch = '';
+  renderPromptHistory();
+  if (modal) modal.classList.add('active');
+}
+
+// 프롬프트 히스토리 모달 닫기
+function closePromptHistory() {
+  const modal = document.getElementById('promptHistoryModal');
+  if (modal) modal.classList.remove('active');
+}
+
+// 프롬프트 히스토리 렌더링
+function renderPromptHistory() {
+  const container = document.getElementById('promptHistoryList');
+  const searchInput = document.getElementById('promptHistorySearch');
+
+  if (!container) return;
+
+  if (searchInput) {
+    searchInput.value = state.promptHistorySearch;
+  }
+
+  let filteredHistory = state.promptHistory;
+
+  // 검색 필터링
+  if (state.promptHistorySearch) {
+    const searchLower = state.promptHistorySearch.toLowerCase();
+    filteredHistory = state.promptHistory.filter(h =>
+      h.prompt.toLowerCase().includes(searchLower) ||
+      (h.translatedPrompt && h.translatedPrompt.toLowerCase().includes(searchLower))
+    );
+  }
+
+  if (filteredHistory.length === 0) {
+    container.innerHTML = `
+      <div class="empty-history">
+        ${state.promptHistory.length === 0 ?
+          '저장된 프롬프트가 없습니다.' :
+          '검색 결과가 없습니다.'}
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filteredHistory.map(item => `
+    <div class="history-item">
+      <div class="history-item-content">
+        <div class="history-prompt">${escapeHtml(item.prompt.substring(0, 150))}${item.prompt.length > 150 ? '...' : ''}</div>
+        ${item.translatedPrompt ? `
+          <div class="history-translated">🌐 ${escapeHtml(item.translatedPrompt.substring(0, 100))}...</div>
+        ` : ''}
+        <div class="history-meta">
+          <span class="history-template">${getTemplateName(item.templateId)}</span>
+          <span class="history-time">${formatRelativeTime(item.timestamp)}</span>
+        </div>
+      </div>
+      <div class="history-item-actions">
+        <button class="btn btn-outline btn-sm" onclick="restorePromptFromHistory('${item.id}')" title="복원">
+          ↩️
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="copyPromptFromHistory('${item.id}')" title="복사">
+          📋
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="deletePromptFromHistory('${item.id}')" title="삭제">
+          🗑️
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 프롬프트 히스토리 검색
+function searchPromptHistory(query) {
+  state.promptHistorySearch = query;
+  renderPromptHistory();
+}
+
+// 히스토리에서 프롬프트 복원
+function restorePromptFromHistory(historyId) {
+  const item = state.promptHistory.find(h => h.id === historyId);
+  if (!item) return;
+
+  // 해당 템플릿으로 전환
+  if (item.templateId && (TEMPLATES[item.templateId] || state.customTemplates[item.templateId])) {
+    handleTemplateChange(item.templateId);
+  }
+
+  // 프롬프트를 클립보드에 복사
+  navigator.clipboard.writeText(item.prompt).then(() => {
+    closePromptHistory();
+    showError('프롬프트가 클립보드에 복사되었습니다. 필드에 붙여넣기 하세요.');
+    setTimeout(hideError, 3000);
+  });
+}
+
+// 히스토리에서 프롬프트 복사
+function copyPromptFromHistory(historyId) {
+  const item = state.promptHistory.find(h => h.id === historyId);
+  if (!item) return;
+
+  navigator.clipboard.writeText(item.prompt).then(() => {
+    showError('프롬프트가 복사되었습니다.');
+    setTimeout(hideError, 2000);
+  });
+}
+
+// 히스토리에서 프롬프트 삭제
+function deletePromptFromHistory(historyId) {
+  state.promptHistory = state.promptHistory.filter(h => h.id !== historyId);
+  savePromptHistory();
+  renderPromptHistory();
+}
+
+// 모든 프롬프트 히스토리 삭제
+function clearAllPromptHistory() {
+  if (!confirm('모든 프롬프트 히스토리를 삭제하시겠습니까?')) return;
+
+  state.promptHistory = [];
+  savePromptHistory();
+  renderPromptHistory();
+}
+
+// 템플릿 이름 가져오기
+function getTemplateName(templateId) {
+  if (TEMPLATES[templateId]) return TEMPLATES[templateId].name;
+  if (state.customTemplates[templateId]) return state.customTemplates[templateId].name;
+  return '알 수 없음';
+}
+
+
+// ===== canvas-generator.js =====
+// ===== CANVAS GENERATOR =====
+
+
+const ASPECT_RATIO_PRESETS = [
+  { value: '1:1', label: '1:1', width: 1, height: 1 },
+  { value: '3:4', label: '3:4', width: 3, height: 4 },
+  { value: '4:3', label: '4:3', width: 4, height: 3 },
+  { value: '9:16', label: '9:16', width: 9, height: 16 },
+  { value: '16:9', label: '16:9', width: 16, height: 9 },
+  { value: '21:9', label: '21:9', width: 21, height: 9 },
+  { value: '2:3', label: '2:3', width: 2, height: 3 },
+  { value: '3:2', label: '3:2', width: 3, height: 2 },
+  { value: '4:5', label: '4:5', width: 4, height: 5 },
+  { value: 'custom', label: '커스텀', width: null, height: null }
+];
+
+// 캔버스 생성기 모달 열기
+function openCanvasGenerator() {
+  const modal = document.getElementById('canvasGeneratorModal');
+  renderAspectRatioButtons();
+  renderCanvasPreview();
+  updateCanvasSizeInputs();
+  if (modal) modal.classList.add('active');
+}
+
+// 캔버스 생성기 모달 닫기
+function closeCanvasGenerator() {
+  const modal = document.getElementById('canvasGeneratorModal');
+  if (modal) modal.classList.remove('active');
+}
+
+// 종횡비 설정
+function setCanvasAspectRatio(ratio) {
+  state.canvasSettings.aspectRatio = ratio;
+
+  // 커스텀이 아닌 경우 크기 자동 계산
+  if (ratio !== 'custom') {
+    const preset = ASPECT_RATIO_PRESETS.find(p => p.value === ratio);
+    if (preset) {
+      calculateCanvasSize(preset.width, preset.height);
+    }
+  }
+
+  renderAspectRatioButtons();
+  renderCanvasPreview();
+  updateCanvasSizeInputs();
+}
+
+// 캔버스 크기 계산
+function calculateCanvasSize(ratioW, ratioH) {
+  const baseSize = state.canvasSettings.baseSize;
+
+  if (ratioW > ratioH) {
+    // 가로가 긴 경우
+    state.canvasSettings.customWidth = baseSize;
+    state.canvasSettings.customHeight = Math.round(baseSize * ratioH / ratioW);
+  } else {
+    // 세로가 길거나 같은 경우
+    state.canvasSettings.customHeight = baseSize;
+    state.canvasSettings.customWidth = Math.round(baseSize * ratioW / ratioH);
+  }
+}
+
+// 기본 크기 설정
+function setCanvasBaseSize(size) {
+  state.canvasSettings.baseSize = parseInt(size) || 1024;
+
+  // 종횡비에 맞춰 재계산
+  if (state.canvasSettings.aspectRatio !== 'custom') {
+    const preset = ASPECT_RATIO_PRESETS.find(p => p.value === state.canvasSettings.aspectRatio);
+    if (preset && preset.width) {
+      calculateCanvasSize(preset.width, preset.height);
+    }
+  }
+
+  renderCanvasPreview();
+  updateCanvasSizeInputs();
+}
+
+// 커스텀 크기 설정
+function setCanvasCustomSize(width, height) {
+  state.canvasSettings.customWidth = parseInt(width) || 1024;
+  state.canvasSettings.customHeight = parseInt(height) || 1024;
+  state.canvasSettings.aspectRatio = 'custom';
+
+  renderAspectRatioButtons();
+  renderCanvasPreview();
+}
+
+// 배경 타입 설정
+function setCanvasBackgroundType(type) {
+  state.canvasSettings.backgroundType = type;
+
+  if (type === 'white') {
+    state.canvasSettings.backgroundColor = '#FFFFFF';
+  } else if (type === 'transparent') {
+    state.canvasSettings.backgroundColor = 'transparent';
+  }
+
+  renderCanvasPreview();
+}
+
+// 배경색 설정
+function setCanvasBackgroundColor(color) {
+  state.canvasSettings.backgroundColor = color;
+  state.canvasSettings.backgroundType = 'custom';
+  renderCanvasPreview();
+}
+
+// 종횡비 버튼 렌더링
+function renderAspectRatioButtons() {
+  const container = document.getElementById('aspectRatioButtons');
+  if (!container) return;
+
+  container.innerHTML = ASPECT_RATIO_PRESETS.map(preset => `
+    <button class="aspect-ratio-btn ${state.canvasSettings.aspectRatio === preset.value ? 'active' : ''}"
+            onclick="setCanvasAspectRatio('${preset.value}')">
+      <span class="ratio-preview" style="${getRatioPreviewStyle(preset)}"></span>
+      <span class="ratio-label">${preset.label}</span>
+    </button>
+  `).join('');
+}
+
+// 종횡비 프리뷰 스타일 계산
+function getRatioPreviewStyle(preset) {
+  if (preset.value === 'custom') {
+    return 'width: 20px; height: 20px; border: 1px dashed var(--color-text-muted);';
+  }
+
+  const maxSize = 30;
+  let w, h;
+
+  if (preset.width > preset.height) {
+    w = maxSize;
+    h = Math.round(maxSize * preset.height / preset.width);
+  } else {
+    h = maxSize;
+    w = Math.round(maxSize * preset.width / preset.height);
+  }
+
+  return `width: ${w}px; height: ${h}px; background: var(--color-border);`;
+}
+
+// 크기 입력 필드 업데이트
+function updateCanvasSizeInputs() {
+  const widthInput = document.getElementById('canvasWidth');
+  const heightInput = document.getElementById('canvasHeight');
+  if (widthInput) widthInput.value = state.canvasSettings.customWidth;
+  if (heightInput) heightInput.value = state.canvasSettings.customHeight;
+}
+
+// 캔버스 프리뷰 렌더링
+function renderCanvasPreview() {
+  const canvas = document.getElementById('canvasPreview');
+  const infoEl = document.getElementById('canvasInfo');
+  if (!canvas || !infoEl) return;
+
+  const ctx = canvas.getContext('2d');
+  const width = state.canvasSettings.customWidth;
+  const height = state.canvasSettings.customHeight;
+
+  // 프리뷰 캔버스 크기 (비율 유지하며 컨테이너에 맞춤)
+  const maxPreviewSize = 200;
+  let previewWidth, previewHeight;
+
+  if (width > height) {
+    previewWidth = maxPreviewSize;
+    previewHeight = Math.round(maxPreviewSize * height / width);
+  } else {
+    previewHeight = maxPreviewSize;
+    previewWidth = Math.round(maxPreviewSize * width / height);
+  }
+
+  canvas.width = previewWidth;
+  canvas.height = previewHeight;
+
+  // 배경 그리기
+  if (state.canvasSettings.backgroundType === 'transparent') {
+    // 체커보드 패턴 (투명 표시)
+    const tileSize = 10;
+    for (let y = 0; y < previewHeight; y += tileSize) {
+      for (let x = 0; x < previewWidth; x += tileSize) {
+        ctx.fillStyle = ((x + y) / tileSize) % 2 === 0 ? '#FFFFFF' : '#CCCCCC';
+        ctx.fillRect(x, y, tileSize, tileSize);
+      }
+    }
+  } else {
+    ctx.fillStyle = state.canvasSettings.backgroundColor;
+    ctx.fillRect(0, 0, previewWidth, previewHeight);
+  }
+
+  // 테두리
+  ctx.strokeStyle = '#CCCCCC';
+  ctx.strokeRect(0, 0, previewWidth, previewHeight);
+
+  // 정보 표시
+  infoEl.textContent = `${width} × ${height}px`;
+}
+
+// 캔버스 생성 및 첨부
+async function generateAndAttachCanvas() {
+  const width = state.canvasSettings.customWidth;
+  const height = state.canvasSettings.customHeight;
+
+  // 실제 크기 캔버스 생성
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  if (state.canvasSettings.backgroundType === 'transparent') {
+    // 투명 배경
+    ctx.clearRect(0, 0, width, height);
+  } else {
+    ctx.fillStyle = state.canvasSettings.backgroundColor;
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  // Blob으로 변환
+  const blob = await new Promise(resolve => {
+    canvas.toBlob(resolve, 'image/png');
+  });
+
+  // File 객체 생성
+  const file = new File([blob], `canvas-${width}x${height}.png`, { type: 'image/png' });
+
+  // 첨부 이미지에 추가
+  await addImages([file]);
+
+  // 모달 닫기
+  closeCanvasGenerator();
+
+  // 안내 메시지
+  showError(`${width}×${height} 캔버스가 첨부되었습니다.`);
+  setTimeout(hideError, 2000);
+}
+
+
+// ===== custom-templates.js =====
+// ===== CUSTOM TEMPLATES =====
+
+
+// 커스텀 템플릿 저장
+function saveCustomTemplates() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_TEMPLATES, JSON.stringify(state.customTemplates));
+  } catch (e) {
+    console.error('Failed to save custom templates:', e);
+    showError('템플릿 저장에 실패했습니다. 저장 공간이 부족할 수 있습니다.');
+  }
+}
+
+// 커스텀 템플릿 로드
+function loadCustomTemplates() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.CUSTOM_TEMPLATES);
+    if (saved) {
+      state.customTemplates = JSON.parse(saved);
+      // 커스텀 템플릿의 fieldValues 초기화
+      Object.keys(state.customTemplates).forEach(templateId => {
+        if (!state.fieldValues[templateId]) {
+          initializeCustomTemplateFieldValues(templateId, state.customTemplates[templateId]);
+        }
+      });
+    }
+  } catch (e) {
+    console.error('Failed to load custom templates:', e);
+  }
+}
+
+// 필드 값 초기화 헬퍼
+function initFieldValue(templateId, field) {
+  if (field.defaultValue !== undefined) {
+    state.fieldValues[templateId][field.id] = field.defaultValue;
+  } else if (field.type === 'checkbox-group') {
+    state.fieldValues[templateId][field.id] = [];
+  } else if (field.type === 'checkbox') {
+    state.fieldValues[templateId][field.id] = false;
+  } else {
+    state.fieldValues[templateId][field.id] = '';
+  }
+}
+
+// 템플릿 에디터 열기
+function openTemplateEditor(templateId = null) {
+  const modal = document.getElementById('templateEditorModal');
+  if (!modal) return;
+
+  if (templateId && state.customTemplates[templateId]) {
+    // 기존 템플릿 편집
+    state.editingTemplate = templateId;
+    const template = state.customTemplates[templateId];
+    document.getElementById('templateName').value = template.name;
+    document.getElementById('templateIcon').value = template.icon;
+    document.getElementById('templateCategory').value = template.category || 'custom';
+    document.getElementById('templateDescription').value = template.description || '';
+    document.getElementById('templatePrompt').value = template.promptTemplate;
+    state.templateEditorFields = JSON.parse(JSON.stringify(template.fields));
+  } else {
+    // 새 템플릿 생성
+    state.editingTemplate = null;
+    document.getElementById('templateName').value = '';
+    document.getElementById('templateIcon').value = '🎨';
+    document.getElementById('templateCategory').value = 'custom';
+    document.getElementById('templateDescription').value = '';
+    document.getElementById('templatePrompt').value = '';
+    state.templateEditorFields = [];
+  }
+
+  renderTemplateEditorFields();
+  modal.classList.add('active');
+}
+
+// 템플릿 에디터 닫기
+function closeTemplateEditor() {
+  const modal = document.getElementById('templateEditorModal');
+  if (modal) modal.classList.remove('active');
+  state.editingTemplate = null;
+  state.templateEditorFields = [];
+}
+
+// 에디터 필드 추가
+function addEditorField() {
+  const newField = {
+    id: 'field_' + Date.now(),
+    label: '새 필드',
+    type: 'text',
+    placeholder: '',
+    helpText: '',
+    required: false,
+    options: []
+  };
+  state.templateEditorFields.push(newField);
+  renderTemplateEditorFields();
+}
+
+// 에디터 필드 삭제
+function deleteEditorField(index) {
+  state.templateEditorFields.splice(index, 1);
+  renderTemplateEditorFields();
+}
+
+// 에디터 필드 이동
+function moveEditorField(index, direction) {
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= state.templateEditorFields.length) return;
+
+  const temp = state.templateEditorFields[index];
+  state.templateEditorFields[index] = state.templateEditorFields[newIndex];
+  state.templateEditorFields[newIndex] = temp;
+  renderTemplateEditorFields();
+}
+
+// 에디터 필드 업데이트
+function updateEditorField(index, property, value) {
+  state.templateEditorFields[index][property] = value;
+
+  // 라벨 변경 시 ID 자동 생성
+  if (property === 'label' && !state.templateEditorFields[index].idManuallySet) {
+    state.templateEditorFields[index].id = value.toLowerCase()
+      .replace(/[^a-z0-9가-힣]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '') || 'field_' + Date.now();
+  }
+
+  renderTemplateEditorFields();
+}
+
+// 필드 옵션 추가
+function addFieldOption(fieldIndex) {
+  if (!state.templateEditorFields[fieldIndex].options) {
+    state.templateEditorFields[fieldIndex].options = [];
+  }
+  state.templateEditorFields[fieldIndex].options.push({
+    value: '',
+    label: ''
+  });
+  renderTemplateEditorFields();
+}
+
+// 필드 옵션 삭제
+function deleteFieldOption(fieldIndex, optionIndex) {
+  state.templateEditorFields[fieldIndex].options.splice(optionIndex, 1);
+  renderTemplateEditorFields();
+}
+
+// 필드 타입 이름 가져오기
+function getFieldTypeName(type) {
+  const names = {
+    'text': '텍스트',
+    'textarea': '영역',
+    'select': '선택',
+    'checkbox': '체크',
+    'checkbox-group': '그룹'
+  };
+  return names[type] || type;
+}
+
+// 템플릿 에디터 필드 렌더링
+function renderTemplateEditorFields() {
+  const container = document.getElementById('templateFieldsEditor');
+  const placeholdersContainer = document.getElementById('fieldPlaceholders');
+
+  if (!container) return;
+
+  if (state.templateEditorFields.length === 0) {
+    container.innerHTML = '<div class="empty-fields-message">필드가 없습니다. "필드 추가" 버튼을 클릭하세요.</div>';
+    if (placeholdersContainer) placeholdersContainer.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = state.templateEditorFields.map((field, index) => `
+    <div class="editor-field-item">
+      <div class="editor-field-header">
+        <span class="field-drag-handle">⋮⋮</span>
+        <span class="field-type-badge">${getFieldTypeName(field.type)}</span>
+        <span class="field-label-preview">{${field.id}}</span>
+        <div class="field-actions">
+          <button class="btn btn-outline btn-sm" onclick="moveEditorField(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+          <button class="btn btn-outline btn-sm" onclick="moveEditorField(${index}, 1)" ${index === state.templateEditorFields.length - 1 ? 'disabled' : ''}>▼</button>
+          <button class="btn btn-outline btn-sm btn-danger" onclick="deleteEditorField(${index})">🗑️</button>
+        </div>
+      </div>
+      <div class="editor-field-body">
+        <div class="field-row">
+          <div class="field-col">
+            <label>라벨</label>
+            <input type="text" class="form-input" value="${escapeHtml(field.label)}"
+                   oninput="updateEditorField(${index}, 'label', this.value)">
+          </div>
+          <div class="field-col">
+            <label>ID</label>
+            <input type="text" class="form-input" value="${escapeHtml(field.id)}"
+                   oninput="updateEditorField(${index}, 'id', this.value); state.templateEditorFields[${index}].idManuallySet = true;">
+          </div>
+          <div class="field-col">
+            <label>타입</label>
+            <select class="form-select" onchange="updateEditorField(${index}, 'type', this.value)">
+              <option value="text" ${field.type === 'text' ? 'selected' : ''}>텍스트</option>
+              <option value="textarea" ${field.type === 'textarea' ? 'selected' : ''}>텍스트영역</option>
+              <option value="select" ${field.type === 'select' ? 'selected' : ''}>선택</option>
+              <option value="checkbox" ${field.type === 'checkbox' ? 'selected' : ''}>체크박스</option>
+              <option value="checkbox-group" ${field.type === 'checkbox-group' ? 'selected' : ''}>체크박스 그룹</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-col">
+            <label>Placeholder</label>
+            <input type="text" class="form-input" value="${escapeHtml(field.placeholder || '')}"
+                   oninput="updateEditorField(${index}, 'placeholder', this.value)">
+          </div>
+          <div class="field-col-sm">
+            <label>필수</label>
+            <input type="checkbox" ${field.required ? 'checked' : ''}
+                   onchange="updateEditorField(${index}, 'required', this.checked)">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-col">
+            <label>도움말</label>
+            <input type="text" class="form-input" value="${escapeHtml(field.helpText || '')}"
+                   oninput="updateEditorField(${index}, 'helpText', this.value)">
+          </div>
+        </div>
+        ${(field.type === 'select' || field.type === 'checkbox-group') ? `
+          <div class="field-options">
+            <label>옵션</label>
+            ${(field.options || []).map((opt, optIndex) => `
+              <div class="option-row">
+                <input type="text" class="form-input" placeholder="값" value="${escapeHtml(opt.value)}"
+                       oninput="state.templateEditorFields[${index}].options[${optIndex}].value = this.value">
+                <input type="text" class="form-input" placeholder="라벨" value="${escapeHtml(opt.label)}"
+                       oninput="state.templateEditorFields[${index}].options[${optIndex}].label = this.value">
+                <button class="btn btn-outline btn-sm" onclick="deleteFieldOption(${index}, ${optIndex})">×</button>
+              </div>
+            `).join('')}
+            <button class="btn btn-outline btn-sm" onclick="addFieldOption(${index})">+ 옵션 추가</button>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  // 필드 플레이스홀더 버튼 렌더링
+  if (placeholdersContainer) {
+    placeholdersContainer.innerHTML = state.templateEditorFields.map(field => `
+      <button class="field-placeholder-btn" onclick="insertFieldPlaceholder('${field.id}')">{${field.id}}</button>
+    `).join('');
+  }
+}
+
+// 필드 플레이스홀더 삽입
+function insertFieldPlaceholder(fieldId) {
+  const textarea = document.getElementById('templatePrompt');
+  if (!textarea) return;
+
+  const placeholder = `{${fieldId}}`;
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const text = textarea.value;
+
+  textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+  textarea.focus();
+  textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+}
+
+// 템플릿 저장
+function saveTemplate() {
+  const name = document.getElementById('templateName').value.trim();
+  const icon = document.getElementById('templateIcon').value.trim() || '🎨';
+  const category = document.getElementById('templateCategory').value;
+  const description = document.getElementById('templateDescription').value.trim();
+  const promptTemplate = document.getElementById('templatePrompt').value.trim();
+
+  // 유효성 검사
+  if (!name) {
+    showError('템플릿 이름을 입력해주세요.');
+    return;
+  }
+  if (state.templateEditorFields.length === 0) {
+    showError('최소 1개의 필드가 필요합니다.');
+    return;
+  }
+  if (!promptTemplate) {
+    showError('프롬프트 템플릿을 입력해주세요.');
+    return;
+  }
+
+  const templateId = state.editingTemplate || generateCustomTemplateId();
+
+  const template = {
+    id: templateId,
+    name: name,
+    icon: icon,
+    category: category,
+    description: description,
+    isCustom: true,
+    createdAt: state.editingTemplate ? state.customTemplates[templateId].createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    fields: state.templateEditorFields.map(f => ({
+      id: f.id,
+      label: f.label,
+      type: f.type,
+      placeholder: f.placeholder || '',
+      helpText: f.helpText || '',
+      required: f.required || false,
+      options: f.options || []
+    })),
+    promptTemplate: promptTemplate
+  };
+
+  state.customTemplates[templateId] = template;
+
+  // fieldValues 초기화
+  state.fieldValues[templateId] = {};
+  template.fields.forEach(field => {
+    initFieldValue(templateId, field);
+  });
+
+  saveCustomTemplates();
+  closeTemplateEditor();
+  renderTemplateTabs();
+
+  // 새로 만든 템플릿으로 전환
+  handleTemplateChange(templateId);
+
+  showError(state.editingTemplate ? '템플릿이 수정되었습니다.' : '템플릿이 생성되었습니다.');
+  setTimeout(hideError, 2000);
+}
+
+// 템플릿 복제
+function duplicateTemplate(templateId) {
+  let sourceTemplate;
+
+  if (TEMPLATES[templateId]) {
+    sourceTemplate = TEMPLATES[templateId];
+  } else if (state.customTemplates[templateId]) {
+    sourceTemplate = state.customTemplates[templateId];
+  } else {
+    showError('템플릿을 찾을 수 없습니다.');
+    return;
+  }
+
+  const newId = generateCustomTemplateId();
+  const newTemplate = {
+    ...JSON.parse(JSON.stringify(sourceTemplate)),
+    id: newId,
+    name: sourceTemplate.name + ' (복사본)',
+    isCustom: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  state.customTemplates[newId] = newTemplate;
+
+  // fieldValues 초기화
+  state.fieldValues[newId] = {};
+  newTemplate.fields.forEach(field => {
+    initFieldValue(newId, field);
+  });
+
+  saveCustomTemplates();
+  renderTemplateTabs();
+
+  showError('템플릿이 복제되었습니다.');
+  setTimeout(hideError, 2000);
+}
+
+// 커스텀 템플릿 삭제
+function deleteCustomTemplate(templateId) {
+  if (!state.customTemplates[templateId]) {
+    showError('삭제할 템플릿을 찾을 수 없습니다.');
+    return;
+  }
+
+  if (!confirm(`"${state.customTemplates[templateId].name}" 템플릿을 삭제하시겠습니까?`)) {
+    return;
+  }
+
+  delete state.customTemplates[templateId];
+  delete state.fieldValues[templateId];
+
+  // 현재 선택된 템플릿이 삭제된 것이면 기본 템플릿으로 전환
+  if (state.currentTemplate === templateId) {
+    state.currentTemplate = 'basic';
+  }
+
+  saveCustomTemplates();
+  renderTemplateTabs();
+  renderTemplateFields();
+
+  showError('템플릿이 삭제되었습니다.');
+  setTimeout(hideError, 2000);
+}
+
+// 템플릿 내보내기
+function exportTemplate(templateId) {
+  const template = state.customTemplates[templateId];
+  if (!template) {
+    showError('템플릿을 찾을 수 없습니다.');
+    return;
+  }
+
+  const exportData = JSON.stringify(template, null, 2);
+  const blob = new Blob([exportData], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `template-${template.name.replace(/[^a-z0-9가-힣]/gi, '-')}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+// 템플릿 가져오기
+function importTemplate(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const template = JSON.parse(e.target.result);
+
+      // 유효성 검사
+      if (!template.name || !template.fields || !template.promptTemplate) {
+        throw new Error('유효하지 않은 템플릿 파일입니다.');
+      }
+
+      const newId = generateCustomTemplateId();
+      template.id = newId;
+      template.isCustom = true;
+      template.createdAt = new Date().toISOString();
+      template.updatedAt = new Date().toISOString();
+
+      state.customTemplates[newId] = template;
+
+      // fieldValues 초기화
+      state.fieldValues[newId] = {};
+      template.fields.forEach(field => {
+        initFieldValue(newId, field);
+      });
+
+      saveCustomTemplates();
+      renderTemplateTabs();
+
+      showError('템플릿을 가져왔습니다.');
+      setTimeout(hideError, 2000);
+    } catch (err) {
+      showError('템플릿 파일을 읽을 수 없습니다: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+
+// ===== main.js =====
+// ===== MAIN.JS - Entry Point =====
+
+// Core modules
+
+// UI modules
+
+// Handler modules
+
+// Feature modules
+
+// ===== Register Global Functions for onclick handlers =====
+window.handleTemplateChange = handleTemplateChange;
+window.resetForm = resetForm;
+
+// Image handlers
+window.setWorkMode = setWorkMode;
+window.handleFileSelect = handleFileSelect;
+window.selectAttachedImage = selectAttachedImage;
+window.deleteAttachedImage = deleteAttachedImage;
+window.deleteSelectedImage = deleteSelectedImage;
+window.viewOriginalImage = viewOriginalImage;
+window.downloadImage = downloadImage;
+window.selectResultHistory = (historyId) => {
+  selectResultHistory(historyId);
+  renderResult();
+};
+
+// Generation handlers
+window.generateImage = generateImage;
+window.copyPrompt = copyPrompt;
+window.handleTranslateToggle = handleTranslateToggle;
+window.setPromptTab = setPromptTab;
+
+// Modal handlers
+window.openSettingsModal = openSettingsModal;
+window.closeSettingsModal = closeSettingsModal;
+window.toggleApiKeyVisibility = toggleApiKeyVisibility;
+window.testApiConnection = testApiConnection;
+window.saveApiKey = saveApiKey;
+window.openImageModal = openImageModal;
+window.closeImageModal = closeImageModal;
+window.navigateImageModal = navigateImageModal;
+window.downloadModalImage = downloadModalImage;
+window.reusePrompt = reusePrompt;
+
+// Edit handlers
+window.startNewSession = startNewSession;
+window.initEditSession = initEditSession;
+window.selectEditHistoryItem = selectEditHistoryItem;
+window.clearEditRequest = clearEditRequest;
+window.applyEditRequest = applyEditRequest;
+window.setPresetCategory = setPresetCategory;
+window.applyPreset = applyPreset;
+window.toggleThinkingMode = toggleThinkingMode;
+
+// Prompt history handlers
+window.savePromptToHistory = savePromptToHistory;
+window.openPromptHistory = openPromptHistory;
+window.closePromptHistory = closePromptHistory;
+window.searchPromptHistory = searchPromptHistory;
+window.restorePromptFromHistory = restorePromptFromHistory;
+window.copyPromptFromHistory = copyPromptFromHistory;
+window.deletePromptFromHistory = deletePromptFromHistory;
+window.clearAllPromptHistory = clearAllPromptHistory;
+
+// Canvas generator handlers
+window.openCanvasGenerator = openCanvasGenerator;
+window.closeCanvasGenerator = closeCanvasGenerator;
+window.setCanvasAspectRatio = setCanvasAspectRatio;
+window.setCanvasBaseSize = setCanvasBaseSize;
+window.setCanvasCustomSize = setCanvasCustomSize;
+window.setCanvasBackgroundType = setCanvasBackgroundType;
+window.setCanvasBackgroundColor = setCanvasBackgroundColor;
+window.generateAndAttachCanvas = generateAndAttachCanvas;
+
+// Custom template handlers
+window.openTemplateEditor = openTemplateEditor;
+window.closeTemplateEditor = closeTemplateEditor;
+window.addEditorField = addEditorField;
+window.deleteEditorField = deleteEditorField;
+window.moveEditorField = moveEditorField;
+window.updateEditorField = updateEditorField;
+window.addFieldOption = addFieldOption;
+window.deleteFieldOption = deleteFieldOption;
+window.saveTemplate = saveTemplate;
+window.duplicateTemplate = duplicateTemplate;
+window.deleteCustomTemplate = deleteCustomTemplate;
+window.exportTemplate = exportTemplate;
+window.insertFieldPlaceholder = insertFieldPlaceholder;
+
+// State access (for inline handlers)
+window.state = state;
+
+// ===== App Initialization =====
+function initApp() {
+  // 1. Initialize field values for all templates
+  initializeFieldValues();
+
+  // 2. Load saved data from localStorage
+  const savedApiKey = loadFromStorage();
+  loadSettings();
+  loadPromptHistory();
+  loadCustomTemplates();
+  loadThinkingMode();
+
+  // 3. Test API connection if key exists
+  if (savedApiKey) {
+    testApiConnection(true);
+  }
+
+  // 4. Render initial UI
+  renderTemplateTabs();
+  renderTemplateFields();
+  renderResult();
+  renderAttachedImages();
+
+  // 5. Setup drag and drop for image upload
+  setupDragAndDrop();
+
+  // 6. Setup keyboard shortcuts
+  setupKeyboardShortcuts();
+
+  console.log('Nano Banana Assistant initialized');
+}
+
+// Setup drag and drop for image upload
+function setupDragAndDrop() {
+  const uploadArea = document.getElementById('uploadArea');
+  if (!uploadArea) return;
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, () => {
+      uploadArea.classList.add('drag-over');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    uploadArea.addEventListener(eventName, () => {
+      uploadArea.classList.remove('drag-over');
+    });
+  });
+
+  uploadArea.addEventListener('drop', async (e) => {
+    const files = Array.from(e.dataTransfer.files);
+    await addImages(files);
+  });
+}
+
+// Setup keyboard shortcuts
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // ESC to close modals
+    if (e.key === 'Escape') {
+      closeSettingsModal();
+      closeImageModal();
+      closePromptHistory();
+      closeCanvasGenerator();
+      closeTemplateEditor();
+    }
+
+    // Arrow keys for image modal navigation
+    if (state.imageModalIndex >= 0) {
+      if (e.key === 'ArrowLeft') {
+        navigateImageModal(-1);
+      } else if (e.key === 'ArrowRight') {
+        navigateImageModal(1);
+      }
+    }
+
+    // Ctrl/Cmd + Enter to generate
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      generateImage();
+    }
+  });
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', initApp);
+
+
+})();
+  </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+/* ===== CSS 변수 ===== */
+:root {
+  /* Primary - 바나나 옐로우 */
+  --color-primary: #FFE135;
+  --color-primary-dark: #E6C200;
+  --color-primary-light: #FFF59D;
+
+  /* Secondary - 다크 그레이 */
+  --color-secondary: #2D3436;
+  --color-secondary-light: #636E72;
+
+  /* Accent */
+  --color-accent: #6C5CE7;
+
+  /* Status */
+  --color-success: #00B894;
+  --color-warning: #FDCB6E;
+  --color-error: #E17055;
+
+  /* Background */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F8F9FA;
+  --color-bg-tertiary: #E9ECEF;
+
+  /* Text */
+  --color-text-primary: #212529;
+  --color-text-secondary: #6C757D;
+  --color-text-muted: #ADB5BD;
+
+  /* Border */
+  --color-border: #DEE2E6;
+  --color-border-focus: #6C5CE7;
+
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+}

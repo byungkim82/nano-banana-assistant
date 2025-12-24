@@ -1,0 +1,1688 @@
+# 나노 바나나 프롬프트 어시스턴트 PRD
+
+## 1. 프로젝트 개요
+
+### 1.1 목적
+그래픽 디자이너가 Google Gemini 이미지 생성 모델(Nano Banana/Nano Banana Pro)을 효율적으로 활용할 수 있도록 돕는 **프롬프트 빌더 및 워크플로우 관리 도구**
+
+### 1.2 핵심 가치
+- 검증된 템플릿으로 시행착오 최소화
+- 탐색→정제→최종 출력의 단계별 워크플로우 지원
+- 이미지 첨부/리뷰/마킹의 통합 환경 제공
+- 한글 프롬프트를 영어로 자동 번역하여 최적의 결과 도출
+
+### 1.3 기술 스택
+- **프론트엔드**: 순수 HTML5, CSS3, Vanilla JavaScript (ES6+)
+- **외부 의존성**: 없음 (단일 HTML 파일로 완전 독립 실행)
+- **API**: Google Gemini API (gemini-2.5-flash-image, gemini-2.5-flash)
+- **저장소**: 브라우저 LocalStorage
+
+### 1.4 파일 구조
+```
+nano-banana-assistant.html (단일 파일, 약 5000-7000줄)
+├── <style> CSS 섹션
+├── <div id="app"> HTML 구조
+└── <script> JavaScript 모듈들
+    ├── // ===== CONFIG =====
+    ├── // ===== STATE MANAGEMENT =====
+    ├── // ===== TEMPLATE DATA (12개 템플릿) =====
+    ├── // ===== API MODULE =====
+    ├── // ===== TRANSLATION MODULE =====
+    ├── // ===== IMAGE PROCESSOR =====
+    ├── // ===== CANVAS EDITOR =====
+    ├── // ===== MARKING EDITOR =====
+    ├── // ===== PROMPT BUILDER =====
+    ├── // ===== EDIT SESSION MANAGER =====
+    ├── // ===== THINKING MODE =====
+    ├── // ===== GALLERY MANAGER =====
+    ├── // ===== TIPS & HELP =====
+    ├── // ===== UI CONTROLLER =====
+    └── // ===== INIT =====
+```
+
+---
+
+## 2. 핵심 기능 명세
+
+### 2.1 API 키 관리
+
+#### 2.1.1 기능 설명
+- 사용자가 본인의 Gemini API 키를 입력하고 저장
+- LocalStorage에 암호화 없이 저장 (사용자 로컬 환경이므로)
+- API 키 유효성 테스트 기능
+
+#### 2.1.2 UI 요소
+```
+┌─────────────────────────────────────────────────────────┐
+│  ⚙️ API 설정                                            │
+├─────────────────────────────────────────────────────────┤
+│  Gemini API Key                                         │
+│  ┌─────────────────────────────────────┐ ┌──────────┐   │
+│  │ ••••••••••••••••••••••             │ │ 👁 보기  │   │
+│  └─────────────────────────────────────┘ └──────────┘   │
+│                                                         │
+│  ┌────────────┐  ┌────────────┐  ┌────────────────────┐ │
+│  │ 연결 테스트 │  │   저장     │  │ API 키 발급 가이드 │ │
+│  └────────────┘  └────────────┘  └────────────────────┘ │
+│                                                         │
+│  상태: ✅ 연결됨 / ❌ 연결 실패 / ⏳ 테스트 중          │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### 2.1.3 구현 상세
+```javascript
+// LocalStorage 키
+const STORAGE_KEYS = {
+  API_KEY: 'nano_banana_api_key',
+  TEMPLATES: 'nano_banana_custom_templates',
+  HISTORY: 'nano_banana_prompt_history',
+  SETTINGS: 'nano_banana_settings'
+};
+
+// API 키 테스트 함수
+async function testApiKey(apiKey) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'Hello' }] }]
+      })
+    }
+  );
+  return response.ok;
+}
+```
+
+---
+
+### 2.2 템플릿 시스템
+
+#### 2.2.1 기본 제공 템플릿 (12개) - 2025년 12월 커뮤니티 검증
+
+**카테고리 A: 기본 템플릿**
+
+| 탭 ID | 탭 이름 | 용도 | 핵심 필드 |
+|-------|---------|------|-----------|
+| `basic` | 기본 프롬프트 | 6요소 공식 기반 범용 | subject, composition, action, location, style, lighting |
+| `photo` | 포토리얼리스틱 | 사진 스타일 | camera, lens, aperture, lighting, filmStock, depthOfField |
+| `composite` | 다중 이미지 합성 | 여러 이미지 조합 (최대 14개) | imagePositions, lightingUnity, shadowDirection |
+
+**카테고리 B: 텍스트/타이포그래피**
+
+| 탭 ID | 탭 이름 | 용도 | 핵심 필드 |
+|-------|---------|------|-----------|
+| `typography` | 타이포그래피 | 텍스트 포함 이미지 | text, fontStyle, fontSize, textColor, placement |
+| `logoGrid` | 8개 로고 그리드 | 한 번에 여러 로고 변형 | theme, wordList, style, backgroundColor |
+| `magazine` | 매거진 커버 | 광택 매거진 스타일 | title, subtitle, personDescription, issueInfo |
+
+**카테고리 C: 스타일/아트워크**
+
+| 탭 ID | 탭 이름 | 용도 | 핵심 필드 |
+|-------|---------|------|-----------|
+| `chiaroscuro` | 명암법 (Chiaroscuro) | 드라마틱 명암 대비 | subject, lightDirection, shadowIntensity |
+| `quilling` | 페이퍼 퀼링 | 종이 띠 입체 아트 | text, colors, backgroundColor |
+| `material` | 재료/텍스처 | 소재 치환 아트워크 | targetObject, material, textureDetails |
+| `cityLettering` | 도시 레터링 | 건물로 글자 표현 | city, word, buildingColors |
+
+**카테고리 D: 전문 워크플로우**
+
+| 탭 ID | 탭 이름 | 용도 | 핵심 필드 |
+|-------|---------|------|-----------|
+| `productLifestyle` | 제품 라이프스타일 | 제품을 여러 환경에 배치 | productDescription, scenes[], consistency |
+| `lightingPro` | 조명 정밀 제어 | 기술적 조명 설정 | subject, colorTemp, keyLight, fillLight, rimLight |
+
+#### 2.2.2 템플릿 데이터 구조
+
+```javascript
+const TEMPLATES = {
+  // ===== 카테고리 A: 기본 템플릿 =====
+  basic: {
+    id: 'basic',
+    name: '기본 프롬프트',
+    icon: '🎨',
+    category: 'basic',
+    description: 'Google 공식 6요소 공식 기반',
+    fields: [
+      {
+        id: 'subject',
+        label: '주제 (Subject)',
+        type: 'textarea',
+        placeholder: '예: 파란색 발광 광학기를 가진 금욕적인 로봇 바리스타',
+        required: true,
+        helpText: '구체적으로 작성하세요. "로봇"보다 "파란 발광 광학기를 가진 로봇 바리스타"가 좋습니다.'
+      },
+      {
+        id: 'composition',
+        label: '구성 (Composition)',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'extreme close-up', label: '익스트림 클로즈업' },
+          { value: 'close-up', label: '클로즈업' },
+          { value: 'medium shot', label: '미디엄 샷' },
+          { value: 'wide shot', label: '와이드 샷' },
+          { value: 'establishing shot', label: '전체 샷' },
+          { value: 'birds eye view', label: '버드 아이 뷰' },
+          { value: 'worms eye view', label: '웜즈 아이 뷰' }
+        ],
+        allowCustom: true
+      },
+      {
+        id: 'action',
+        label: '액션 (Action)',
+        type: 'text',
+        placeholder: '예: 커피를 내리고 있는, 달리는 중인'
+      },
+      {
+        id: 'location',
+        label: '위치 (Location)',
+        type: 'text',
+        placeholder: '예: 화성의 미래형 카페에서'
+      },
+      {
+        id: 'style',
+        label: '스타일 (Style)',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'photorealistic', label: '포토리얼리스틱' },
+          { value: '3D animation', label: '3D 애니메이션' },
+          { value: 'watercolor painting', label: '수채화' },
+          { value: 'oil painting', label: '유화' },
+          { value: 'pencil sketch', label: '연필 스케치' },
+          { value: 'digital art', label: '디지털 아트' },
+          { value: 'vintage photograph', label: '빈티지 사진' }
+        ],
+        allowCustom: true
+      },
+      {
+        id: 'lighting',
+        label: '조명',
+        type: 'select',
+        options: [
+          { value: '', label: '선택하세요' },
+          { value: 'golden hour sunlight', label: '골든아워' },
+          { value: 'soft diffused light', label: '소프트 디퓨즈드' },
+          { value: 'dramatic chiaroscuro', label: '명암법 (Chiaroscuro)' },
+          { value: 'neon lighting', label: '네온 조명' },
+          { value: 'studio three-point lighting', label: '스튜디오 3점 조명' },
+          { value: 'Rembrandt lighting', label: '렘브란트 조명' }
+        ],
+        allowCustom: true
+      },
+      {
+        id: 'additional',
+        label: '추가 지시사항',
+        type: 'textarea',
+        placeholder: '색상 팔레트, 분위기, 기타 세부사항...'
+      }
+    ],
+    promptTemplate: `Create a {style} of {subject} {action} in {location}. {composition}. {lighting}. {additional}`
+  },
+
+  // ===== 카테고리 B: 텍스트/타이포그래피 =====
+  logoGrid: {
+    id: 'logoGrid',
+    name: '8개 로고 그리드',
+    icon: '🔤',
+    category: 'typography',
+    description: '한 번에 여러 로고 변형 생성',
+    fields: [
+      {
+        id: 'theme',
+        label: '테마',
+        type: 'text',
+        placeholder: '예: 음식, 감정, 동물',
+        required: true
+      },
+      {
+        id: 'expressionStyle',
+        label: '표현 방식',
+        type: 'select',
+        options: [
+          { value: 'letters visually express meaning', label: '글자가 의미를 시각적으로 표현' },
+          { value: 'letters made of actual objects', label: '글자를 실제 물체로 제작' },
+          { value: 'letters with dramatic shadows', label: '극적인 그림자가 있는 글자' }
+        ],
+        allowCustom: true
+      },
+      {
+        id: 'backgroundColor',
+        label: '배경색',
+        type: 'select',
+        options: [
+          { value: 'white', label: '흰색' },
+          { value: 'black', label: '검은색' },
+          { value: 'gradient gray', label: '그라데이션 회색' }
+        ],
+        allowCustom: true
+      },
+      {
+        id: 'renderStyle',
+        label: '렌더링 스타일',
+        type: 'select',
+        options: [
+          { value: 'flat vector black', label: '플랫 벡터 검은색' },
+          { value: 'colorful 3D', label: '컬러풀 3D' },
+          { value: 'minimalist line art', label: '미니멀 라인 아트' }
+        ]
+      }
+    ],
+    promptTemplate: `Create 8 minimalist logos. Each is a word related to {theme}, where {expressionStyle}. Composition: all logos on a single {backgroundColor} background, rendered in {renderStyle} style.`
+  },
+
+  magazine: {
+    id: 'magazine',
+    name: '매거진 커버',
+    icon: '📰',
+    category: 'typography',
+    description: '광택 매거진 커버 스타일',
+    fields: [
+      {
+        id: 'title',
+        label: '매거진 제목',
+        type: 'text',
+        placeholder: '예: VOGUE, TIME',
+        required: true,
+        helpText: '25자 이하 권장'
+      },
+      {
+        id: 'personDescription',
+        label: '인물 설명',
+        type: 'textarea',
+        placeholder: '예: 녹색과 골드 고급 패션을 입은 다이나믹한 인물'
+      },
+      {
+        id: 'fontStyle',
+        label: '폰트 스타일',
+        type: 'select',
+        options: [
+          { value: 'bold serif black-white', label: '굵은 세리프 흑백' },
+          { value: 'elegant script gold', label: '우아한 필기체 골드' },
+          { value: 'modern sans-serif', label: '모던 산세리프' }
+        ]
+      },
+      {
+        id: 'issueInfo',
+        label: '발행 정보',
+        type: 'text',
+        placeholder: '예: 2025년 12월호, $15.99'
+      },
+      {
+        id: 'extras',
+        label: '추가 요소',
+        type: 'checkbox-group',
+        options: [
+          { value: 'barcode', label: '바코드' },
+          { value: 'issue number', label: '발행 호수' },
+          { value: 'price tag', label: '가격표' }
+        ]
+      }
+    ],
+    promptTemplate: `Glossy magazine cover photo. Cover displays "{title}" in large {fontStyle} font filling the view. No other text. In front of the text, {personDescription}. Corner includes {issueInfo}. {extras}. Magazine resting on white shelf leaning against wall.`
+  },
+
+  // ===== 카테고리 C: 스타일/아트워크 =====
+  chiaroscuro: {
+    id: 'chiaroscuro',
+    name: '명암법 (Chiaroscuro)',
+    icon: '🌓',
+    category: 'artwork',
+    description: '드라마틱한 명암 대비 효과',
+    fields: [
+      {
+        id: 'subject',
+        label: '피사체',
+        type: 'textarea',
+        placeholder: '예: 중년 남성의 측면 초상화',
+        required: true
+      },
+      {
+        id: 'lightDirection',
+        label: '조명 방향',
+        type: 'select',
+        options: [
+          { value: 'from above and slightly left', label: '위와 약간 왼쪽에서' },
+          { value: 'from above and slightly right', label: '위와 약간 오른쪽에서' },
+          { value: 'from direct side left', label: '왼쪽 측면에서' },
+          { value: 'from below (horror style)', label: '아래에서 (호러 스타일)' }
+        ]
+      },
+      {
+        id: 'highlightAreas',
+        label: '하이라이트 영역',
+        type: 'text',
+        placeholder: '예: 눈과 광대뼈만',
+        helpText: '빛이 닿는 부분을 지정'
+      },
+      {
+        id: 'shadowIntensity',
+        label: '그림자 강도',
+        type: 'select',
+        options: [
+          { value: 'deep and sharp', label: '깊고 선명한' },
+          { value: 'soft and gradual', label: '부드럽고 점진적' },
+          { value: 'extreme contrast', label: '극단적 대비' }
+        ]
+      },
+      {
+        id: 'preserveIdentity',
+        label: '원본 특징 유지',
+        type: 'checkbox',
+        defaultValue: true
+      }
+    ],
+    promptTemplate: `Generate intense chiaroscuro effect while preserving original features and expression. Harsh, directional lighting coming {lightDirection}. Cast {shadowIntensity} shadows across the entire face. Only {highlightAreas} are illuminated by thin lines of light, rest of face in deep shadow. Subject: {subject}`
+  },
+
+  quilling: {
+    id: 'quilling',
+    name: '페이퍼 퀼링',
+    icon: '🎀',
+    category: 'artwork',
+    description: '종이 띠로 만든 입체 아트워크',
+    fields: [
+      {
+        id: 'text',
+        label: '표현할 텍스트',
+        type: 'text',
+        placeholder: '예: MAGIC, LOVE',
+        required: true,
+        helpText: '짧은 단어 권장 (1-2단어)'
+      },
+      {
+        id: 'colors',
+        label: '종이 띠 색상',
+        type: 'text',
+        placeholder: '예: 보라색, 핑크, 마젠타, 흰색'
+      },
+      {
+        id: 'backgroundColor',
+        label: '배경색',
+        type: 'text',
+        placeholder: '예: 진회색 질감 배경'
+      },
+      {
+        id: 'scriptStyle',
+        label: '글씨 스타일',
+        type: 'select',
+        options: [
+          { value: 'elaborate calligraphy script', label: '정교한 캘리그래피' },
+          { value: 'bold block letters', label: '굵은 블록 글자' },
+          { value: 'flowing cursive', label: '흐르는 필기체' }
+        ]
+      }
+    ],
+    promptTemplate: `Paper quilling artwork, rendered with {colors} paper strips. The word "{text}" expressed in {scriptStyle}. Paper strips create depth and shadows, placed on {backgroundColor} textured background.`
+  },
+
+  cityLettering: {
+    id: 'cityLettering',
+    name: '도시 레터링',
+    icon: '🏙️',
+    category: 'artwork',
+    description: '건물로 글자 형태 표현 (berlIN 테크닉)',
+    fields: [
+      {
+        id: 'city',
+        label: '도시',
+        type: 'text',
+        placeholder: '예: 베를린, 서울, 도쿄',
+        required: true
+      },
+      {
+        id: 'word',
+        label: '표현할 단어',
+        type: 'text',
+        placeholder: '예: BERLIN, SEOUL',
+        required: true
+      },
+      {
+        id: 'buildingColors',
+        label: '건물 색상',
+        type: 'text',
+        placeholder: '예: 파란색, 빨간색, 흰색, 검은색'
+      },
+      {
+        id: 'timeOfDay',
+        label: '시간대',
+        type: 'select',
+        options: [
+          { value: 'bright sunny day', label: '밝은 햇살 낮' },
+          { value: 'golden hour sunset', label: '골든아워 석양' },
+          { value: 'blue hour twilight', label: '블루아워 황혼' },
+          { value: 'night with city lights', label: '도시 불빛 밤' }
+        ]
+      }
+    ],
+    promptTemplate: `{timeOfDay} {city} street view. Old buildings arranged in the shape of the letters '{word}'. Buildings painted in {buildingColors}. Buildings still look like buildings, similarity to letters is subtle. Strong shadows, sharp details.`
+  },
+
+  // ===== 카테고리 D: 전문 워크플로우 =====
+  productLifestyle: {
+    id: 'productLifestyle',
+    name: '제품 라이프스타일',
+    icon: '📦',
+    category: 'professional',
+    description: '하나의 제품을 여러 환경에 배치 (이커머스 최적화)',
+    fields: [
+      {
+        id: 'productDescription',
+        label: '제품 설명',
+        type: 'textarea',
+        placeholder: '제품 이미지를 업로드하고 여기에 설명을 작성하세요',
+        required: true,
+        helpText: '흰 배경의 고품질 제품 사진을 첨부하세요'
+      },
+      {
+        id: 'scene1',
+        label: '장면 1',
+        type: 'text',
+        placeholder: '예: 맥북과 커피가 있는 미니멀한 홈 오피스 책상 위'
+      },
+      {
+        id: 'scene2',
+        label: '장면 2',
+        type: 'text',
+        placeholder: '예: 타월과 물병이 있는 헬스장 가방 안'
+      },
+      {
+        id: 'scene3',
+        label: '장면 3',
+        type: 'text',
+        placeholder: '예: 와인 잔과 촛불이 있는 레스토랑 테이블 위'
+      },
+      {
+        id: 'scene4',
+        label: '장면 4',
+        type: 'text',
+        placeholder: '예: 숲 등산로의 열린 백팩 안'
+      },
+      {
+        id: 'consistency',
+        label: '일관성 유지 항목',
+        type: 'checkbox-group',
+        options: [
+          { value: 'same angle', label: '같은 각도' },
+          { value: 'same material reflection', label: '같은 재질 반사' },
+          { value: 'same color', label: '같은 색상' },
+          { value: 'same logo position', label: '같은 로고 위치' }
+        ],
+        defaultValue: ['same angle', 'same material reflection', 'same color', 'same logo position']
+      },
+      {
+        id: 'outputSize',
+        label: '출력 크기',
+        type: 'text',
+        placeholder: '예: 2000×2000 픽셀',
+        defaultValue: '2000×2000 pixels'
+      }
+    ],
+    promptTemplate: `Show this same product in 4 lifestyle scenes:
+1) {scene1}
+2) {scene2}
+3) {scene3}
+4) {scene4}
+
+Product must remain identical across all images: {consistency}. Only environment, props, and lighting style change. Use natural depth of field. Output as 4 separate images at {outputSize}, optimized for e-commerce carousel.`
+  },
+
+  lightingPro: {
+    id: 'lightingPro',
+    name: '조명 정밀 제어',
+    icon: '💡',
+    category: 'professional',
+    description: '기술적 조명 언어로 정확한 조명 설정',
+    fields: [
+      {
+        id: 'subject',
+        label: '피사체/장면',
+        type: 'textarea',
+        placeholder: '예: 프리미엄 시계 제품 사진',
+        required: true
+      },
+      {
+        id: 'colorTemp',
+        label: '색온도',
+        type: 'select',
+        options: [
+          { value: '5600K daylight', label: '5600K 주광' },
+          { value: '3200K tungsten warm', label: '3200K 텅스텐 따뜻함' },
+          { value: '6500K cool daylight', label: '6500K 쿨 데이라이트' },
+          { value: 'mixed warm and cool', label: '혼합 (따뜻함 + 차가움)' }
+        ]
+      },
+      {
+        id: 'keyLight',
+        label: '키 라이트',
+        type: 'text',
+        placeholder: '예: 왼쪽 상단에서 45° 각도',
+        helpText: '주요 조명의 위치와 각도'
+      },
+      {
+        id: 'fillLight',
+        label: '필 라이트',
+        type: 'text',
+        placeholder: '예: 오른쪽에서 30% 강도의 부드러운 조명',
+        helpText: '그림자를 채우는 보조 조명'
+      },
+      {
+        id: 'rimLight',
+        label: '림/백 라이트',
+        type: 'text',
+        placeholder: '예: 뒤에서 가장자리를 강조',
+        helpText: '피사체 윤곽을 분리하는 조명'
+      },
+      {
+        id: 'surface',
+        label: '배치 표면',
+        type: 'text',
+        placeholder: '예: 검은 아크릴 표면에 반사'
+      }
+    ],
+    promptTemplate: `{subject}. Lighting setup: {colorTemp}, key light from {keyLight}, {fillLight} as fill light. {rimLight} for edge separation. Placed on {surface}.`
+  }
+};
+```
+
+#### 2.2.3 사용자 정의 템플릿
+- 새 템플릿 생성: 필드 추가/삭제, 이름 지정, 아이콘 선택
+- 기존 템플릿 복제 후 수정
+- LocalStorage에 저장
+- 내보내기/가져오기 (JSON)
+
+```javascript
+// 사용자 정의 템플릿 저장 구조
+const customTemplates = {
+  'custom_1703123456789': {
+    id: 'custom_1703123456789',
+    name: '내 제품 사진 템플릿',
+    icon: '📦',
+    isCustom: true,
+    createdAt: '2025-12-23T10:00:00Z',
+    fields: [...],
+    promptTemplate: '...'
+  }
+};
+```
+
+---
+
+### 2.3 대화식 편집 워크플로우 (핵심 기능)
+
+Nano Banana Pro의 가장 강력한 기능은 대화식 편집입니다. 80% 만족스러운 결과가 나오면 처음부터 재생성하지 말고 반복 수정합니다.
+
+#### 2.3.1 단계별 워크플로우 UI
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  💬 대화식 편집 모드                                    [새 세션 시작] │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ 🔄 편집 히스토리                                             │   │
+│  ├─────────────────────────────────────────────────────────────┤   │
+│  │ 1️⃣ [기본] 화성 카페의 로봇 바리스타...           ✅ 적용됨   │   │
+│  │ 2️⃣ [수정] 조명을 더 따뜻하게, 그림자 부드럽게    ✅ 적용됨   │   │
+│  │ 3️⃣ [수정] 왼쪽 상단에 'MARS CAFE' 로고 추가     ⏳ 현재     │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  ── 빠른 수정 버튼 ──                                               │
+│  [조명 조정] [색상 변경] [요소 추가] [요소 제거] [스타일 변경]        │
+│                                                                     │
+│  ── 수정 요청 입력 ──                                               │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ 전체 채도를 15% 낮추고 대비를 약간 높여주세요              │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│  [이전 결과 기반으로 수정 적용]                                     │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### 2.3.2 빠른 수정 프리셋
+
+| 카테고리 | 빠른 수정 옵션 |
+|----------|---------------|
+| **조명** | 더 따뜻하게, 더 차갑게, 그림자 강화, 그림자 부드럽게, 역광 추가 |
+| **색상** | 채도 +15%, 채도 -15%, 대비 높이기, 빈티지 톤, 모노크롬 |
+| **요소** | 로고 추가, 텍스트 추가, 배경 변경, 소품 추가 |
+| **스타일** | 더 사실적으로, 더 일러스트풍으로, 필름 그레인 추가 |
+
+#### 2.3.3 상태 관리
+```javascript
+const EditSession = {
+  sessionId: 'session_xxx',
+  basePrompt: '...', // 최초 프롬프트
+  editHistory: [
+    { step: 1, type: 'base', prompt: '...', imageId: 'img_1', status: 'applied' },
+    { step: 2, type: 'edit', prompt: '조명을 더 따뜻하게...', imageId: 'img_2', status: 'applied' },
+    { step: 3, type: 'edit', prompt: '로고 추가...', imageId: null, status: 'pending' }
+  ],
+  currentImage: 'img_2' // 현재 기준 이미지
+};
+```
+
+---
+
+### 2.4 Thinking 모드 (복잡한 요청용)
+
+#### 2.4.1 기능 설명
+복잡한 로직이 필요한 이미지 생성 시, 모델이 추론 과정을 거치도록 명시적으로 요청합니다.
+
+#### 2.4.2 UI
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🧠 Thinking 모드                              [토글: ON/OFF] │
+├─────────────────────────────────────────────────────────────┤
+│  ☑️ Thinking 모드 활성화                                     │
+│                                                             │
+│  이 모드가 활성화되면 프롬프트 앞에 다음이 자동 추가됩니다:   │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │ "다음 이미지를 생성하기 전에:                           ││
+│  │  1. 요청의 핵심 목표를 분석하세요                       ││
+│  │  2. 물리 법칙, 조명, 구도의 논리적 일관성을 확인하세요  ││
+│  │  3. 각 요소 간의 관계와 우선순위를 설정하세요           ││
+│  │  4. 실수 가능성이 있는 부분을 미리 검토하세요           ││
+│  │                                                         ││
+│  │ 그런 다음:"                                             ││
+│  └─────────────────────────────────────────────────────────┘│
+│                                                             │
+│  💡 권장 상황:                                               │
+│  • 다중 요소가 있는 복잡한 장면                              │
+│  • 정확한 텍스트 렌더링이 필요할 때                          │
+│  • 물리적 정확성이 중요한 이미지 (그림자 방향 등)            │
+│  • 여러 이미지의 일관성 유지가 필요할 때                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 2.4.3 Thinking 프리픽스 템플릿
+```javascript
+const THINKING_PREFIX = `Before generating this image:
+1. Analyze the core objective of my request
+2. Verify logical consistency of physics, lighting, and composition
+3. Establish relationships and priorities between elements
+4. Review potential error points (e.g., text spelling, proportions)
+
+Then generate:
+`;
+
+function applyThinkingMode(prompt, enabled) {
+  if (!enabled) return prompt;
+  return THINKING_PREFIX + prompt;
+}
+```
+
+---
+
+### 2.5 작업 모드 시스템
+
+#### 2.5.1 세 가지 모드
+
+| 모드 | 아이콘 | 첨부 이미지 처리 | 출력 기대 해상도 | 용도 |
+|------|--------|-----------------|-----------------|------|
+| 탐색 | 🔍 | 최대 512px, JPEG 60% | 빠른 생성 | 방향 탐색, 빠른 변형 |
+| 정제 | ✨ | 최대 1024px, JPEG 80% | 중간 품질 | 세부 조정, 스타일 확정 |
+| 최종 | 📸 | 원본 유지 | 프로덕션 품질 | 최종 자산 출력 |
+
+#### 2.5.2 UI
+```
+┌─────────────────────────────────────────────┐
+│  작업 모드                                   │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐        │
+│  │ 🔍 탐색 │ │ ✨ 정제 │ │ 📸 최종 │        │
+│  │  512px  │ │ 1024px  │ │  원본   │        │
+│  └─────────┘ └─────────┘ └─────────┘        │
+│       ↑ 현재 선택됨                          │
+└─────────────────────────────────────────────┘
+```
+
+#### 2.5.3 이미지 처리 로직
+```javascript
+const WORK_MODES = {
+  explore: {
+    id: 'explore',
+    name: '탐색',
+    icon: '🔍',
+    maxSize: 512,
+    quality: 0.6,
+    description: '빠른 변형 생성용 (512px, 60% 품질)'
+  },
+  refine: {
+    id: 'refine', 
+    name: '정제',
+    icon: '✨',
+    maxSize: 1024,
+    quality: 0.8,
+    description: '세부 조정용 (1024px, 80% 품질)'
+  },
+  final: {
+    id: 'final',
+    name: '최종',
+    icon: '📸',
+    maxSize: null, // 원본 유지
+    quality: 1.0,
+    description: '프로덕션 출력용 (원본 해상도)'
+  }
+};
+
+async function processImage(file, mode) {
+  const config = WORK_MODES[mode];
+  if (!config.maxSize) return file; // 최종 모드는 원본
+  
+  return await resizeAndCompress(file, {
+    maxWidth: config.maxSize,
+    maxHeight: config.maxSize,
+    quality: config.quality,
+    format: 'jpeg'
+  });
+}
+```
+
+---
+
+### 2.6 이미지 관리
+
+#### 2.6.1 첨부 이미지 패널 (왼쪽)
+
+**기능:**
+- 드래그 앤 드롭 또는 클릭으로 이미지 업로드
+- 다중 이미지 지원 (합성용)
+- 썸네일 그리드 표시
+- 선택된 이미지 큰 미리보기
+- 압축 전/후 용량 표시
+- 이미지 삭제, 순서 변경
+- base64 변환 (API 전송용)
+
+**UI:**
+```
+┌─────────────────────────────────┐
+│  📎 첨부 이미지                  │
+├─────────────────────────────────┤
+│  ┌─────────────────────────────┐│
+│  │                             ││
+│  │   여기에 이미지를 드래그     ││
+│  │   또는 클릭하여 업로드       ││
+│  │                             ││
+│  └─────────────────────────────┘│
+│                                 │
+│  ┌────┐ ┌────┐ ┌────┐ ┌────┐   │
+│  │ 1  │ │ 2  │ │ 3  │ │ +  │   │
+│  └────┘ └────┘ └────┘ └────┘   │
+│                                 │
+│  ── 선택된 이미지 ──            │
+│  ┌─────────────────────────────┐│
+│  │                             ││
+│  │      (미리보기)              ││
+│  │                             ││
+│  └─────────────────────────────┘│
+│  📄 photo.jpg                   │
+│  📐 1920×1080 → 512×288         │
+│  💾 2.3MB → 48KB                │
+│  ┌────────┐ ┌────────┐          │
+│  │  삭제  │ │ 원본보기│          │
+│  └────────┘ └────────┘          │
+└─────────────────────────────────┘
+```
+
+#### 2.6.2 결과 이미지 갤러리 (오른쪽)
+
+**기능:**
+- 생성된 이미지 히스토리 표시
+- 각 이미지에 사용된 프롬프트 표시
+- 이미지 다운로드 (PNG)
+- 이미지 클릭 시 확대 모달
+- "재편집" 버튼으로 해당 프롬프트 복원
+- 세션 내 저장 (새로고침 시 초기화, 또는 LocalStorage 옵션)
+
+**UI:**
+```
+┌─────────────────────────────────┐
+│  🖼️ 생성 결과                    │
+├─────────────────────────────────┤
+│  ┌────┐ ┌────┐ ┌────┐ ┌────┐   │
+│  │ #4 │ │ #3 │ │ #2 │ │ #1 │   │
+│  └────┘ └────┘ └────┘ └────┘   │
+│                                 │
+│  ── 선택된 결과 ──              │
+│  ┌─────────────────────────────┐│
+│  │                             ││
+│  │      (생성된 이미지)         ││
+│  │                             ││
+│  └─────────────────────────────┘│
+│                                 │
+│  📝 프롬프트:                   │
+│  "A photorealistic image of..."│
+│                                 │
+│  ┌──────────┐ ┌──────────┐      │
+│  │ 다운로드  │ │  재편집  │      │
+│  └──────────┘ └──────────┘      │
+└─────────────────────────────────┘
+```
+
+#### 2.6.3 이미지 확대 모달
+```
+┌─────────────────────────────────────────────────────────┐
+│                                              [X 닫기]   │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │                                                 │   │
+│  │                                                 │   │
+│  │               (전체 화면 이미지)                 │   │
+│  │                                                 │   │
+│  │                                                 │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                         │
+│  [◀ 이전] [다운로드] [재편집] [다음 ▶]                  │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 2.7 빈 캔버스 생성기
+
+#### 2.7.1 기능
+- 지정된 종횡비로 빈 캔버스(흰색/투명) PNG 생성
+- 생성된 캔버스를 첨부 이미지로 자동 추가
+- Gemini가 해당 비율을 참조하도록 프롬프트에 안내 문구 추가
+
+#### 2.7.2 종횡비 프리셋
+
+| 이름 | 비율 | 예시 해상도 | 용도 |
+|------|------|------------|------|
+| 정사각형 | 1:1 | 1024×1024 | SNS 피드 |
+| 세로 | 3:4 | 768×1024 | 인스타 포트레이트 |
+| 가로 | 4:3 | 1024×768 | 일반 가로 |
+| 세로 풀 | 9:16 | 576×1024 | 스토리/릴스 |
+| 와이드 | 16:9 | 1024×576 | 유튜브 썸네일 |
+| 초와이드 | 21:9 | 1024×439 | 시네마틱 |
+| 커스텀 | 사용자 지정 | 사용자 지정 | 자유 |
+
+#### 2.7.3 UI
+```
+┌─────────────────────────────────────────────┐
+│  📐 빈 캔버스 생성                           │
+├─────────────────────────────────────────────┤
+│  종횡비 선택                                 │
+│  ○ 1:1 정사각형    ○ 16:9 와이드            │
+│  ○ 3:4 세로        ○ 9:16 세로 풀           │
+│  ○ 4:3 가로        ○ 21:9 초와이드          │
+│  ○ 커스텀: [    ] × [    ]                  │
+│                                             │
+│  기준 크기: [1024] px (긴 쪽 기준)           │
+│                                             │
+│  배경색                                      │
+│  ○ 흰색 (#FFFFFF)                           │
+│  ○ 투명                                     │
+│  ○ 커스텀: [색상 선택기]                     │
+│                                             │
+│  ┌─────────────────────────────────────────┐│
+│  │           캔버스 생성 및 첨부             ││
+│  └─────────────────────────────────────────┘│
+└─────────────────────────────────────────────┘
+```
+
+---
+
+### 2.8 캔버스 마킹 에디터
+
+#### 2.8.1 기능
+- 빈 캔버스 또는 업로드된 이미지 위에 영역 마킹
+- 사각형 영역 드래그로 지정
+- 각 영역에 라벨(A, B, C... 또는 사용자 지정) 부여
+- 영역별 설명 텍스트 입력
+- 마킹 정보를 프롬프트 텍스트로 자동 변환
+- 마킹된 이미지를 PNG로 내보내기 (Gemini 참조용)
+
+#### 2.8.2 UI
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🎯 캔버스 마킹 에디터                              [X 닫기] │
+├─────────────────────────────────────────────────────────────┤
+│  도구: [□ 영역 추가] [A 라벨] [✎ 편집] [🗑 삭제] [↩ 되돌리기]│
+├───────────────────────────────────┬─────────────────────────┤
+│                                   │  마킹 목록              │
+│   ┌───────────────────────────┐   │                         │
+│   │     ┌─────┐               │   │  ┌─────────────────────┐│
+│   │     │  A  │    ┌───────┐  │   │  │ A: 제품 이미지 1    ││
+│   │     │     │    │   B   │  │   │  │ 위치: 좌상단 20%    ││
+│   │     └─────┘    │ (메인) │  │   │  │ [편집] [삭제]       ││
+│   │                │       │  │   │  └─────────────────────┘│
+│   │                └───────┘  │   │  ┌─────────────────────┐│
+│   │         ┌───┐             │   │  │ B: 메인 제품        ││
+│   │         │ C │             │   │  │ 위치: 중앙 40%      ││
+│   │         └───┘             │   │  │ [편집] [삭제]       ││
+│   └───────────────────────────┘   │  └─────────────────────┘│
+│                                   │  ┌─────────────────────┐│
+│   [확대] [축소] [맞춤]            │  │ C: 로고             ││
+│                                   │  │ 위치: 우하단 15%    ││
+│                                   │  │ [편집] [삭제]       ││
+│                                   │  └─────────────────────┘│
+├───────────────────────────────────┴─────────────────────────┤
+│  생성된 프롬프트:                                            │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │ "이 이미지들을 16:9 이미지로 합성하세요:                 ││
+│  │ - 이미지 A를 좌측 상단(10%, 10%)에 20% 크기로 배치       ││
+│  │ - 이미지 B를 중앙(50%, 40%)에 40% 크기로 배치            ││
+│  │ - 이미지 C를 우측 하단(80%, 70%)에 15% 크기로 배치"      ││
+│  └─────────────────────────────────────────────────────────┘│
+│                                                             │
+│  ┌──────────────────┐ ┌──────────────────┐                  │
+│  │ 프롬프트에 추가   │ │ 마킹 이미지 저장  │                  │
+│  └──────────────────┘ └──────────────────┘                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 2.8.3 마킹 데이터 구조
+```javascript
+const markingData = {
+  canvasWidth: 1920,
+  canvasHeight: 1080,
+  aspectRatio: '16:9',
+  regions: [
+    {
+      id: 'region_1',
+      label: 'A',
+      description: '제품 이미지 1',
+      x: 10,      // 퍼센트
+      y: 10,      // 퍼센트
+      width: 20,  // 퍼센트
+      height: 25, // 퍼센트
+      color: '#FF6B6B'
+    },
+    // ...
+  ]
+};
+
+// 프롬프트 생성 함수
+function generateMarkingPrompt(markingData) {
+  let prompt = `Composite these images into a ${markingData.aspectRatio} image:\n`;
+  markingData.regions.forEach(region => {
+    prompt += `- Image ${region.label} ("${region.description}"): `;
+    prompt += `position at (${region.x}%, ${region.y}%), `;
+    prompt += `size ${region.width}% × ${region.height}%\n`;
+  });
+  return prompt;
+}
+```
+
+---
+
+### 2.9 프롬프트 빌더
+
+#### 2.9.1 기능
+- 선택된 템플릿의 필드들을 폼으로 표시
+- 필드 값 입력 시 실시간 프롬프트 미리보기 업데이트
+- 동적 필드 추가/삭제
+- 한글→영어 자동 번역 옵션
+- 최종 프롬프트 클립보드 복사
+- 이미지 생성 API 호출
+
+#### 2.9.2 UI
+```
+┌─────────────────────────────────────────────────────────┐
+│  ✏️ 프롬프트 빌더                                        │
+├─────────────────────────────────────────────────────────┤
+│  템플릿: 기본 프롬프트 🎨                                │
+│                                                         │
+│  주제 (Subject) *                                       │
+│  ┌─────────────────────────────────────────────────────┐│
+│  │ 파란색 발광 광학기를 가진 금욕적인 로봇 바리스타     ││
+│  └─────────────────────────────────────────────────────┘│
+│  💡 구체적으로 작성하세요.                               │
+│                                                         │
+│  구성 (Composition)                                     │
+│  ┌─────────────────────────────────────────────────────┐│
+│  │ 클로즈업                                        ▼  ││
+│  └─────────────────────────────────────────────────────┘│
+│                                                         │
+│  ... (나머지 필드들)                                    │
+│                                                         │
+│  ┌───────────────────────┐                              │
+│  │ + 커스텀 필드 추가    │                              │
+│  └───────────────────────┘                              │
+│                                                         │
+│  ── 프롬프트 미리보기 ──                                │
+│  ☑ 한글→영어 자동 번역                                  │
+│  ┌─────────────────────────────────────────────────────┐│
+│  │ Create a photorealistic image of a stoic robot     ││
+│  │ barista with glowing blue optics, brewing coffee   ││
+│  │ in a futuristic cafe on Mars. Close-up shot...     ││
+│  └─────────────────────────────────────────────────────┘│
+│                                                         │
+│  ┌────────────┐ ┌────────────┐ ┌────────────────────┐   │
+│  │ 📋 복사    │ │ 🔄 초기화   │ │ 🎨 이미지 생성    │   │
+│  └────────────┘ └────────────┘ └────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### 2.9.3 번역 로직
+```javascript
+async function translateToEnglish(koreanText, apiKey) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `Translate the following Korean text to English. 
+This is a prompt for image generation, so preserve all descriptive details precisely.
+Only output the translated text, nothing else.
+
+Korean text:
+${koreanText}`
+          }]
+        }]
+      })
+    }
+  );
+  const data = await response.json();
+  return data.candidates[0].content.parts[0].text;
+}
+```
+
+---
+
+### 2.10 이미지 생성 API 연동
+
+#### 2.10.1 API 호출 흐름
+```
+1. 프롬프트 준비 (한글인 경우 번역)
+2. 첨부 이미지가 있으면 base64로 변환
+3. 현재 작업 모드에 따라 이미지 리사이즈
+4. Gemini API 호출
+5. 응답에서 이미지 추출 (part.inline_data)
+6. 결과 갤러리에 추가
+7. 에러 처리 및 사용자 피드백
+```
+
+#### 2.10.2 API 호출 코드
+```javascript
+async function generateImage(prompt, attachedImages, apiKey) {
+  const contents = [];
+  
+  // 텍스트 프롬프트
+  contents.push({
+    role: 'user',
+    parts: [
+      { text: prompt },
+      // 첨부 이미지가 있으면 추가
+      ...attachedImages.map(img => ({
+        inline_data: {
+          mime_type: 'image/jpeg',
+          data: img.base64 // base64 인코딩된 이미지 데이터
+        }
+      }))
+    ]
+  });
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents,
+        generationConfig: {
+          responseModalities: ['TEXT', 'IMAGE']
+        }
+      })
+    }
+  );
+
+  const data = await response.json();
+  
+  // 응답에서 이미지 추출
+  const results = [];
+  for (const part of data.candidates[0].content.parts) {
+    if (part.inline_data) {
+      results.push({
+        type: 'image',
+        mimeType: part.inline_data.mime_type,
+        data: part.inline_data.data // base64
+      });
+    } else if (part.text) {
+      results.push({
+        type: 'text',
+        content: part.text
+      });
+    }
+  }
+  
+  return results;
+}
+```
+
+#### 2.10.3 에러 처리
+```javascript
+const API_ERRORS = {
+  400: '잘못된 요청입니다. 프롬프트를 확인해주세요.',
+  401: 'API 키가 유효하지 않습니다.',
+  403: '접근이 거부되었습니다. API 키 권한을 확인해주세요.',
+  429: '요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.',
+  500: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+  'IMAGE_SAFETY': '안전 필터에 의해 이미지 생성이 차단되었습니다.',
+  'NETWORK_ERROR': '네트워크 연결을 확인해주세요.'
+};
+```
+
+---
+
+## 3. UI/UX 설계
+
+### 3.1 전체 레이아웃
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│  🍌 나노 바나나 프롬프트 어시스턴트              [⚙️ 설정] [💡 팁] [❓ 도움말] │
+├────────────────────────────────────────────────────────────────────────────┤
+│  작업 모드: [🔍 탐색] [✨ 정제] [📸 최종]     🧠 Thinking 모드: [ON/OFF]    │
+├────────────────────────────────────────────────────────────────────────────┤
+│ ┌──────────────────────────────────────────────────────────────────────┐   │
+│ │ 카테고리: [기본▼] [텍스트▼] [아트워크▼] [전문▼] [+ 사용자 템플릿]   │   │
+│ ├──────────────────────────────────────────────────────────────────────┤   │
+│ │ [기본] [포토] [합성] │ [타이포] [로고] [매거진] │ [명암] [퀼링] ... │   │
+│ └──────────────────────────────────────────────────────────────────────┘   │
+├──────────────────┬─────────────────────────────┬───────────────────────────┤
+│                  │                             │                           │
+│   📎 첨부 이미지  │    ✏️ 프롬프트 빌더         │    🖼️ 생성 결과           │
+│   (최대 14개)    │                             │                           │
+│                  │  [템플릿 필드들]            │  [생성된 이미지들]         │
+│  [+ 이미지 추가]  │                             │                           │
+│  [📐 빈 캔버스]  │  ── 프롬프트 미리보기 ──    │  ┌─────────────────────┐   │
+│  [🎯 마킹 에디터] │  [한글 원본] [영어 번역]    │  │                     │   │
+│                  │                             │  │   (선택된 결과)      │   │
+│  ┌────────────┐  │  ── 대화식 편집 ──          │  │                     │   │
+│  │ (썸네일들)  │  │  [조명] [색상] [요소] ...  │  └─────────────────────┘   │
+│  └────────────┘  │                             │                           │
+│                  │  [📋 복사] [🔄 초기화]       │  💬 편집 히스토리          │
+│  ┌────────────┐  │  [🎨 이미지 생성]           │  1️⃣ 기본 생성 ✅           │
+│  │ (프리뷰)   │  │  [✏️ 이전 결과 수정]        │  2️⃣ 조명 수정 ✅           │
+│  └────────────┘  │                             │  3️⃣ 로고 추가 ⏳           │
+│                  │                             │                           │
+│  📐 1920×1080    │                             │  [다운로드] [재편집]       │
+│  💾 2.3MB→48KB  │                             │                           │
+└──────────────────┴─────────────────────────────┴───────────────────────────┘
+│                              푸터: 상태 메시지 / API 사용량                  │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 3.2 반응형 브레이크포인트
+- **Desktop** (≥1200px): 3열 레이아웃
+- **Tablet** (768px-1199px): 2열 레이아웃 (첨부+빌더 / 결과)
+- **Mobile** (≤767px): 1열 레이아웃 (탭으로 전환)
+
+### 3.3 색상 시스템
+```css
+:root {
+  /* Primary - 바나나 옐로우 */
+  --color-primary: #FFE135;
+  --color-primary-dark: #E6C200;
+  --color-primary-light: #FFF59D;
+  
+  /* Secondary - 다크 그레이 */
+  --color-secondary: #2D3436;
+  --color-secondary-light: #636E72;
+  
+  /* Accent */
+  --color-accent: #6C5CE7;
+  
+  /* Status */
+  --color-success: #00B894;
+  --color-warning: #FDCB6E;
+  --color-error: #E17055;
+  
+  /* Background */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F8F9FA;
+  --color-bg-tertiary: #E9ECEF;
+  
+  /* Text */
+  --color-text-primary: #212529;
+  --color-text-secondary: #6C757D;
+  --color-text-muted: #ADB5BD;
+  
+  /* Border */
+  --color-border: #DEE2E6;
+  --color-border-focus: #6C5CE7;
+}
+```
+
+### 3.4 타이포그래피
+```css
+:root {
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+                 'Noto Sans KR', sans-serif;
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-base: 1rem;    /* 16px */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.25rem;   /* 20px */
+  --font-size-2xl: 1.5rem;   /* 24px */
+}
+```
+
+---
+
+## 4. 상태 관리
+
+### 4.1 전역 상태 구조
+```javascript
+const AppState = {
+  // API 설정
+  apiKey: null,
+  apiStatus: 'disconnected', // 'disconnected' | 'testing' | 'connected' | 'error'
+  
+  // 작업 모드
+  workMode: 'explore', // 'explore' | 'refine' | 'final'
+  
+  // Thinking 모드
+  thinkingMode: false,
+  
+  // 현재 템플릿
+  currentCategory: 'basic', // 'basic' | 'typography' | 'artwork' | 'professional'
+  currentTemplate: 'basic',
+  
+  // 템플릿 필드 값
+  fieldValues: {
+    basic: { subject: '', composition: '', ... },
+    photo: { ... },
+    chiaroscuro: { ... },
+    // ... 12개 템플릿
+  },
+  
+  // 사용자 정의 템플릿
+  customTemplates: {},
+  
+  // 첨부 이미지 (최대 14개)
+  attachedImages: [
+    // { id, file, originalSize, processedSize, base64, thumbnail }
+  ],
+  selectedImageId: null,
+  
+  // 대화식 편집 세션
+  editSession: {
+    sessionId: null,
+    basePrompt: '',
+    editHistory: [],
+    currentImageId: null
+  },
+  
+  // 생성 결과
+  generatedResults: [
+    // { id, prompt, translatedPrompt, images: [...], timestamp, editStep }
+  ],
+  selectedResultId: null,
+  
+  // 캔버스 마킹
+  markingData: null,
+  
+  // UI 상태
+  isGenerating: false,
+  isTranslating: false,
+  showSettings: false,
+  showHelp: false,
+  showTips: false,
+  showMarkingEditor: false,
+  
+  // 설정
+  settings: {
+    autoTranslate: true,
+    saveHistory: true,
+    darkMode: false,
+    showTipsOnStart: true
+  }
+};
+```
+
+### 4.2 상태 업데이트 패턴
+```javascript
+// 간단한 상태 관리 (Proxy 기반)
+function createStore(initialState) {
+  const listeners = new Set();
+  
+  const state = new Proxy(initialState, {
+    set(target, key, value) {
+      target[key] = value;
+      listeners.forEach(fn => fn(key, value));
+      return true;
+    }
+  });
+  
+  return {
+    state,
+    subscribe(fn) {
+      listeners.add(fn);
+      return () => listeners.delete(fn);
+    },
+    getState() {
+      return { ...state };
+    }
+  };
+}
+
+const store = createStore(AppState);
+
+// 사용 예시
+store.subscribe((key, value) => {
+  if (key === 'currentTemplate') {
+    renderTemplateFields();
+  }
+});
+```
+
+---
+
+## 5. 구현 우선순위
+
+### Phase 1: 핵심 기능 (MVP)
+1. ✅ HTML 기본 구조 및 CSS 스타일링
+2. ✅ API 키 설정 및 테스트 (LocalStorage 저장)
+3. ✅ 기본 템플릿 시스템 (12개 탭, 카테고리별 구분)
+4. ✅ 프롬프트 빌더 (필드 입력, 미리보기)
+5. ✅ 프롬프트 복사 기능
+6. ✅ 이미지 생성 API 연동
+
+### Phase 2: 이미지 관리 & 번역
+7. 작업 모드 전환 (탐색/정제/최종)
+8. 이미지 업로드 및 리사이즈
+9. 첨부 이미지 갤러리 (최대 14개 지원)
+10. 결과 이미지 갤러리
+11. 이미지 확대 모달
+12. 한글→영어 번역 연동 (gemini-2.5-flash)
+
+### Phase 3: 대화식 편집 & Thinking 모드
+13. 대화식 편집 워크플로우 (편집 히스토리)
+14. 빠른 수정 프리셋 버튼
+15. Thinking 모드 토글 및 프리픽스 자동 추가
+16. 편집 세션 관리
+
+### Phase 4: 고급 기능
+17. 사용자 정의 템플릿 생성/저장/내보내기
+18. 빈 캔버스 생성기 (10가지 종횡비)
+19. 캔버스 마킹 에디터
+20. 프롬프트 히스토리
+
+### Phase 5: 폴리싱
+21. 반응형 레이아웃 (데스크톱/태블릿/모바일)
+22. 에러 처리 및 사용자 피드백 개선
+23. 키보드 단축키
+24. 도움말/온보딩/팁 표시
+
+---
+
+## 6. 성공률을 높이는 2025년 최신 팁 (UI에 표시)
+
+앱 내에 "💡 팁" 섹션으로 표시할 내용들:
+
+### 6.1 핵심 원칙
+| 원칙 | 설명 |
+|------|------|
+| **Thinking 모드 우선** | 복잡한 로직이 필요한 경우 모델이 추론 과정을 거치도록 명시적으로 요청 |
+| **재생성 대신 반복** | 80% 맞으면 처음부터 다시 만들지 말고 필요한 변경만 요청 |
+| **조명 매칭** | 합성 이미지의 경우 방향, 색온도(5600K), 그림자 부드러움을 지정 |
+| **정체성 보존** | 얼굴이 변형되면 깨끗한 참조 이미지를 다시 업로드 (정면, 고해상도, 중립 조명) |
+| **태그 수프 금지** | "dog, park, 4k, realistic" 방식 대신 크리에이티브 디렉터처럼 자연어로 지시 |
+
+### 6.2 상황별 권장 설정
+
+```javascript
+const TIPS_BY_SITUATION = {
+  complexScene: {
+    tip: 'Thinking 모드를 활성화하세요',
+    reason: '다중 요소가 있는 복잡한 장면에서 논리적 일관성 확보'
+  },
+  textRendering: {
+    tip: '텍스트는 25자 이하, 2-3개 문구로 제한',
+    reason: '긴 텍스트는 여러 번 반복해서 수정 필요'
+  },
+  productShot: {
+    tip: '흰 배경 제품 사진을 먼저 업로드',
+    reason: '제품 라이프스타일 템플릿에서 일관성 유지'
+  },
+  characterConsistency: {
+    tip: '첫 프롬프트에서 상세한 특징을 정의하고 "동일한 캐릭터"로 참조',
+    reason: '여러 이미지에 걸쳐 캐릭터 일관성 유지'
+  },
+  compositeImages: {
+    tip: '한 번에 2개 참조 이미지부터 시작해 점진적으로 증가',
+    reason: '최대 14개까지 지원하지만 안정성을 위해 점진적 추가 권장'
+  }
+};
+```
+
+---
+
+## 7. 주요 템플릿 상세 데이터
+
+### 7.1 포토리얼리스틱 템플릿
+```javascript
+{
+  id: 'photo',
+  name: '포토리얼리스틱',
+  icon: '📷',
+  fields: [
+    {
+      id: 'subject',
+      label: '피사체',
+      type: 'textarea',
+      required: true
+    },
+    {
+      id: 'camera',
+      label: '카메라',
+      type: 'select',
+      options: [
+        { value: 'Canon EOS R5', label: 'Canon EOS R5' },
+        { value: 'Sony A7R V', label: 'Sony A7R V' },
+        { value: 'Nikon Z9', label: 'Nikon Z9' },
+        { value: 'Hasselblad H6D', label: 'Hasselblad H6D' }
+      ],
+      allowCustom: true
+    },
+    {
+      id: 'lens',
+      label: '렌즈',
+      type: 'select',
+      options: [
+        { value: '85mm f/1.4', label: '85mm f/1.4 (인물)' },
+        { value: '35mm f/1.4', label: '35mm f/1.4 (환경 인물)' },
+        { value: '24-70mm f/2.8', label: '24-70mm f/2.8 (범용)' },
+        { value: '70-200mm f/2.8', label: '70-200mm f/2.8 (망원)' },
+        { value: '100mm macro', label: '100mm 매크로' }
+      ],
+      allowCustom: true
+    },
+    {
+      id: 'aperture',
+      label: '조리개',
+      type: 'select',
+      options: [
+        { value: 'f/1.4', label: 'f/1.4 (극얕은 심도)' },
+        { value: 'f/2.8', label: 'f/2.8 (얕은 심도)' },
+        { value: 'f/5.6', label: 'f/5.6 (중간)' },
+        { value: 'f/8', label: 'f/8 (선명)' },
+        { value: 'f/11', label: 'f/11 (풍경)' }
+      ]
+    },
+    {
+      id: 'lighting',
+      label: '조명',
+      type: 'select',
+      options: [
+        { value: 'golden hour sunlight', label: '골든아워' },
+        { value: 'soft window light', label: '창문 자연광' },
+        { value: 'overcast diffused', label: '흐린 날 확산광' },
+        { value: 'Rembrandt lighting', label: '렘브란트 조명' },
+        { value: 'rim light', label: '림 라이트' },
+        { value: 'three-point studio', label: '3점 스튜디오 조명' }
+      ],
+      allowCustom: true
+    },
+    {
+      id: 'filmStock',
+      label: '필름/색감',
+      type: 'select',
+      options: [
+        { value: '', label: '기본 디지털' },
+        { value: 'Kodachrome 64 color science', label: 'Kodachrome 64' },
+        { value: 'Fujifilm Velvia saturated', label: 'Fujifilm Velvia' },
+        { value: 'Cinestill 800T', label: 'Cinestill 800T' },
+        { value: 'vintage Polaroid', label: '빈티지 폴라로이드' }
+      ]
+    },
+    {
+      id: 'depthOfField',
+      label: '피사계 심도',
+      type: 'select',
+      options: [
+        { value: 'shallow depth of field with creamy bokeh', label: '얕은 심도, 크리미 보케' },
+        { value: 'sharp focus throughout', label: '전체 선명' },
+        { value: 'selective focus on subject', label: '피사체만 선명' }
+      ]
+    },
+    {
+      id: 'additional',
+      label: '추가 지시사항',
+      type: 'textarea'
+    }
+  ],
+  promptTemplate: `A photorealistic photograph of {subject}. Captured with {camera}, {lens} lens at {aperture}. {lighting}. {filmStock}. {depthOfField}. {additional}`
+}
+```
+
+### 7.2 다중 이미지 합성 템플릿
+```javascript
+{
+  id: 'composite',
+  name: '다중 이미지 합성',
+  icon: '🧩',
+  fields: [
+    {
+      id: 'aspectRatio',
+      label: '최종 종횡비',
+      type: 'select',
+      options: [
+        { value: '16:9', label: '16:9 와이드' },
+        { value: '1:1', label: '1:1 정사각형' },
+        { value: '4:3', label: '4:3 가로' },
+        { value: '9:16', label: '9:16 세로' }
+      ]
+    },
+    {
+      id: 'compositeInstructions',
+      label: '합성 지시사항',
+      type: 'textarea',
+      placeholder: '각 이미지의 배치 위치와 크기를 설명하세요.\n예: 이미지 1을 왼쪽에, 이미지 2를 중앙 크게, 이미지 3을 오른쪽 상단에 작게',
+      helpText: '마킹 에디터를 사용하면 더 정확하게 지정할 수 있습니다.'
+    },
+    {
+      id: 'lightingUnity',
+      label: '조명 통일',
+      type: 'select',
+      options: [
+        { value: 'unified studio lighting from left', label: '왼쪽 스튜디오 조명' },
+        { value: 'unified natural daylight', label: '자연 주광' },
+        { value: 'unified soft box at 45 degrees', label: '소프트박스 45도' }
+      ],
+      allowCustom: true
+    },
+    {
+      id: 'shadowDirection',
+      label: '그림자 방향',
+      type: 'select',
+      options: [
+        { value: 'consistent shadows to the right', label: '오른쪽으로 통일' },
+        { value: 'consistent shadows to the left', label: '왼쪽으로 통일' },
+        { value: 'consistent shadows below', label: '아래로 통일' }
+      ]
+    },
+    {
+      id: 'background',
+      label: '배경',
+      type: 'text',
+      placeholder: '예: 그라데이션 회색, 흰색 스튜디오, 도시 야경'
+    },
+    {
+      id: 'additional',
+      label: '추가 지시사항',
+      type: 'textarea'
+    }
+  ],
+  promptTemplate: `Composite the uploaded images into a single {aspectRatio} image. {compositeInstructions}. Apply {lightingUnity} with {shadowDirection}. Background: {background}. {additional}`
+}
+```
+
+---
+
+## 8. 참고 자료
+
+### 8.1 Gemini API 엔드포인트
+- 텍스트 생성: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
+- 이미지 생성: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent`
+
+### 8.2 이미지 생성 모델 설정
+```javascript
+{
+  generationConfig: {
+    responseModalities: ['TEXT', 'IMAGE'],
+    // 선택적 종횡비 지정 (API 지원 시)
+    imageConfig: {
+      aspectRatio: '16:9' // 1:1, 3:4, 4:3, 9:16, 16:9
+    }
+  }
+}
+```
+
+### 8.3 프롬프트 작성 가이드라인 (문서 참조)
+- 키워드 나열 대신 자연스러운 장면 설명
+- 6가지 요소: Subject, Composition, Action, Location, Style, Editing
+- 사진 용어 적극 활용 (렌즈, 조리개, 조명)
+- 텍스트 렌더링: 25자 이하, 2-3개 문구 제한
+- 네거티브 프롬프트: 명령어 없이 단어 나열
+
+---
+
+## 9. 테스트 체크리스트
+
+### 9.1 기능 테스트
+- [ ] API 키 저장/불러오기 (LocalStorage)
+- [ ] API 연결 테스트
+- [ ] 모든 템플릿 탭 전환 (12개)
+- [ ] 카테고리별 템플릿 그룹화 표시
+- [ ] 필드 입력 및 프롬프트 생성
+- [ ] 프롬프트 복사
+- [ ] 이미지 생성 API 호출
+- [ ] 이미지 업로드 및 리사이즈 (최대 14개)
+- [ ] 작업 모드별 이미지 처리 (탐색/정제/최종)
+- [ ] 빈 캔버스 생성 (10가지 종횡비)
+- [ ] 마킹 에디터 영역 지정
+- [ ] 사용자 템플릿 생성/저장/삭제/내보내기
+- [ ] 한글→영어 번역
+- [ ] 대화식 편집 워크플로우
+- [ ] Thinking 모드 토글
+- [ ] 빠른 수정 프리셋 버튼
+
+### 9.2 에러 처리 테스트
+- [ ] 잘못된 API 키
+- [ ] 네트워크 오류
+- [ ] 안전 필터 차단 (IMAGE_SAFETY)
+- [ ] 빈 프롬프트 제출
+- [ ] 너무 큰 이미지 업로드
+- [ ] API 요청 한도 초과 (429)
+- [ ] 잘못된 종횡비 요청
+
+### 9.3 UI/UX 테스트
+- [ ] 반응형 레이아웃 (데스크톱/태블릿/모바일)
+- [ ] 로딩 상태 표시
+- [ ] 에러 메시지 표시
+- [ ] 이미지 확대 모달
+- [ ] 드래그 앤 드롭
+- [ ] 편집 히스토리 표시
+- [ ] 팁/도움말 표시
+
+---
+
+*문서 버전: 1.0*
+*최종 업데이트: 2025-12-23*

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나노 바나나 프롬프트 어시스턴트</title>
+
+  <!-- CSS 파일들 -->
+  <link rel="stylesheet" href="src/css/variables.css">
+  <link rel="stylesheet" href="src/css/reset.css">
+  <link rel="stylesheet" href="src/css/layout.css">
+  <link rel="stylesheet" href="src/css/components.css">
+  <link rel="stylesheet" href="src/css/panels.css">
+  <link rel="stylesheet" href="src/css/modals.css">
+  <link rel="stylesheet" href="src/css/editing.css">
+  <link rel="stylesheet" href="src/css/responsive.css">
+  <link rel="stylesheet" href="src/css/utilities.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 헤더 -->
+    <header class="header">
+      <h1 class="header-title">
+        <span>🍌</span>
+        <span>나노 바나나 프롬프트 어시스턴트</span>
+      </h1>
+      <div class="header-actions">
+        <!-- Thinking 모드 토글 -->
+        <div class="thinking-tooltip">
+          <label id="thinkingToggle" class="thinking-toggle" onclick="toggleThinkingMode()">
+            <input type="checkbox" id="thinkingCheckbox">
+            <span class="thinking-toggle-switch"></span>
+            <span class="thinking-toggle-label">🧠 Thinking</span>
+          </label>
+          <div class="tooltip-content">
+            <strong>Thinking 모드</strong><br>
+            AI가 이미지 생성 전 논리적 검토를 수행합니다.<br><br>
+            <strong>권장 상황:</strong><br>
+            • 다중 요소가 있는 복잡한 장면<br>
+            • 정확한 텍스트 렌더링<br>
+            • 물리적 정확성이 중요한 이미지<br>
+            • 여러 이미지의 일관성 유지
+          </div>
+        </div>
+        <div id="apiStatus" class="api-status disconnected">
+          <span class="status-dot"></span>
+          <span id="apiStatusText">API 미연결</span>
+        </div>
+        <button class="btn btn-secondary" onclick="openSettingsModal()">
+          <span>⚙️</span>
+          <span>API 설정</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 작업 모드 바 -->
+    <div class="work-mode-bar">
+      <span class="work-mode-label">작업 모드:</span>
+      <div class="work-mode-buttons" id="workModeButtons">
+        <button class="work-mode-btn active" data-mode="explore" onclick="setWorkMode('explore')">
+          <span class="mode-icon">🔍</span>
+          <span class="mode-name">탐색</span>
+          <span class="mode-size">512px</span>
+        </button>
+        <button class="work-mode-btn" data-mode="refine" onclick="setWorkMode('refine')">
+          <span class="mode-icon">✨</span>
+          <span class="mode-name">정제</span>
+          <span class="mode-size">1024px</span>
+        </button>
+        <button class="work-mode-btn" data-mode="final" onclick="setWorkMode('final')">
+          <span class="mode-icon">📸</span>
+          <span class="mode-name">최종</span>
+          <span class="mode-size">원본</span>
+        </button>
+      </div>
+      <label class="translate-toggle">
+        <input type="checkbox" id="translateToggle" onchange="handleTranslateToggle(this.checked)">
+        <span>🌐 한글→영어 자동 번역</span>
+      </label>
+    </div>
+
+    <!-- 메인 (3열 레이아웃) -->
+    <main class="main-3col">
+      <!-- 첨부 이미지 패널 -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>📎</span>
+          <span>첨부 이미지</span>
+          <span style="margin-left: auto; font-size: var(--font-size-xs); color: var(--color-text-muted);">
+            (<span id="attachedCount">0</span>/14)
+          </span>
+        </div>
+        <div class="panel-body">
+          <!-- 업로드 영역 -->
+          <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-area-icon">📤</div>
+            <div class="upload-area-text">이미지를 드래그하거나<br>클릭하여 업로드</div>
+            <div class="upload-area-hint">PNG, JPG, WEBP (최대 14개)</div>
+          </div>
+          <input type="file" id="fileInput" multiple accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+
+          <!-- 썸네일 그리드 -->
+          <div class="thumbnail-grid" id="thumbnailGrid">
+            <!-- JavaScript로 렌더링 -->
+          </div>
+
+          <!-- 선택된 이미지 정보 -->
+          <div class="selected-image-info hidden" id="selectedImageInfo">
+            <img class="selected-image-preview" id="selectedImagePreview" src="" alt="선택된 이미지">
+            <div class="selected-image-meta" id="selectedImageMeta">
+              <!-- JavaScript로 렌더링 -->
+            </div>
+            <div class="selected-image-actions">
+              <button class="btn btn-outline btn-sm" onclick="viewOriginalImage()">🔍 원본 보기</button>
+              <button class="btn btn-outline btn-sm" onclick="deleteSelectedImage()">🗑️ 삭제</button>
+            </div>
+          </div>
+
+          <!-- 빈 캔버스 생성 버튼 -->
+          <div class="canvas-generator-btn-container">
+            <button class="btn btn-outline" onclick="openCanvasGenerator()">
+              📐 빈 캔버스 생성
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 프롬프트 빌더 패널 -->
+      <div class="panel">
+        <!-- 템플릿 탭 -->
+        <div class="template-tabs" id="templateTabs">
+          <!-- JavaScript로 렌더링 -->
+        </div>
+
+        <!-- 폼 영역 -->
+        <div class="panel-body">
+          <div id="templateForm">
+            <!-- JavaScript로 렌더링 -->
+          </div>
+
+          <!-- 프롬프트 미리보기 -->
+          <div class="prompt-preview">
+            <div class="prompt-preview-header">
+              <span class="prompt-preview-title">📝 프롬프트 미리보기</span>
+              <div class="prompt-tabs" id="promptTabs">
+                <button class="prompt-tab active" data-tab="original" onclick="setPromptTab('original')">원본</button>
+                <button class="prompt-tab" data-tab="translated" onclick="setPromptTab('translated')">번역</button>
+              </div>
+              <button class="btn btn-outline btn-icon" onclick="openPromptHistory()" title="히스토리">
+                📜
+              </button>
+              <button class="btn btn-outline btn-icon" onclick="copyPrompt()" title="복사">
+                📋
+              </button>
+            </div>
+            <div id="promptPreview" class="prompt-preview-text empty">
+              필드를 입력하면 프롬프트가 생성됩니다.
+            </div>
+            <div id="translateStatus" class="translate-status hidden">
+              <span id="translateStatusText"></span>
+            </div>
+          </div>
+
+          <!-- 에러 메시지 -->
+          <div id="errorMessage" class="error-message hidden"></div>
+
+          <!-- 액션 버튼 -->
+          <div class="action-bar">
+            <button class="btn btn-outline" onclick="resetForm()">
+              🔄 초기화
+            </button>
+            <button class="btn btn-accent btn-lg" onclick="generateImage()" id="generateBtn">
+              🎨 이미지 생성
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 결과 패널 -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>🖼️</span>
+          <span>생성 결과</span>
+        </div>
+        <div class="panel-body">
+          <!-- 편집 세션 UI -->
+          <div class="edit-session hidden" id="editSession">
+            <div class="edit-session-header">
+              <div class="edit-session-title">
+                <span>🔄</span>
+                <span>편집 세션</span>
+              </div>
+              <div class="edit-session-actions">
+                <button class="btn btn-outline btn-icon" onclick="saveEditSession()" title="세션 저장">💾</button>
+                <button class="btn btn-outline btn-icon" onclick="loadEditSession()" title="세션 불러오기">📂</button>
+                <button class="btn btn-outline btn-icon" onclick="startNewSession()" title="새 세션">🔄</button>
+              </div>
+            </div>
+
+            <!-- 편집 히스토리 -->
+            <div class="edit-history" id="editHistory">
+              <!-- JavaScript로 렌더링 -->
+            </div>
+
+            <!-- 수정 요청 입력 -->
+            <div class="edit-request">
+              <textarea
+                class="edit-request-input"
+                id="editRequestInput"
+                placeholder="이전 결과를 기반으로 수정할 내용을 입력하세요..."
+              ></textarea>
+              <div class="edit-request-actions">
+                <button class="btn btn-outline" onclick="clearEditRequest()">지우기</button>
+                <button class="btn btn-accent" onclick="applyEditRequest()" id="applyEditBtn">✨ 수정 적용</button>
+              </div>
+            </div>
+
+            <!-- 빠른 수정 프리셋 -->
+            <div class="quick-presets">
+              <div class="quick-presets-title">⚡ 빠른 수정</div>
+              <div class="preset-categories" id="presetCategories">
+                <!-- JavaScript로 렌더링 -->
+              </div>
+              <div class="preset-items" id="presetItems">
+                <!-- JavaScript로 렌더링 -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 히스토리 썸네일 -->
+          <div class="result-history hidden" id="resultHistory">
+            <!-- JavaScript로 렌더링 -->
+          </div>
+
+          <div id="resultContainer" class="result-container">
+            <div class="result-placeholder">
+              <div class="result-placeholder-icon">🎨</div>
+              <div>프롬프트를 입력하고<br>이미지를 생성하세요</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 이미지 확대 모달 -->
+    <div id="imageModal" class="image-modal-overlay">
+      <div class="image-modal-content">
+        <button class="image-modal-close" onclick="closeImageModal()">&times;</button>
+        <button class="image-modal-nav prev" onclick="navigateImageModal(-1)">◀</button>
+        <img class="image-modal-img" id="imageModalImg" src="" alt="확대 이미지">
+        <button class="image-modal-nav next" onclick="navigateImageModal(1)">▶</button>
+        <div class="image-modal-actions">
+          <button class="btn btn-primary" onclick="downloadModalImage()">💾 다운로드</button>
+          <button class="btn btn-secondary" onclick="reusePrompt()">✏️ 재편집</button>
+        </div>
+        <div class="image-modal-info" id="imageModalInfo"></div>
+      </div>
+    </div>
+
+    <!-- API 설정 모달 -->
+    <div id="settingsModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">⚙️ API 설정</h2>
+          <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Gemini API Key</label>
+            <div class="input-group">
+              <input
+                type="password"
+                id="apiKeyInput"
+                class="form-input"
+                placeholder="API 키를 입력하세요"
+              >
+              <button class="btn btn-outline btn-icon" onclick="toggleApiKeyVisibility()" title="보기/숨기기">
+                👁
+              </button>
+            </div>
+            <p class="form-help">
+              API 키는 브라우저 로컬 스토리지에 저장됩니다.
+              <a href="https://aistudio.google.com/app/apikey" target="_blank">API 키 발급받기</a>
+            </p>
+          </div>
+
+          <div id="apiTestResult"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="testApiConnection()" id="testApiBtn">
+            🔗 연결 테스트
+          </button>
+          <button class="btn btn-primary" onclick="saveApiKey()">
+            💾 저장
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 프롬프트 히스토리 모달 -->
+    <div id="promptHistoryModal" class="modal-overlay">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2 class="modal-title">📜 프롬프트 히스토리</h2>
+          <button class="modal-close" onclick="closePromptHistory()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="history-search">
+            <input type="text" id="promptHistorySearch" class="form-input"
+                   placeholder="프롬프트 검색..."
+                   oninput="searchPromptHistory(this.value)">
+          </div>
+          <div id="promptHistoryList" class="prompt-history-list">
+            <!-- JavaScript로 렌더링 -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline btn-danger" onclick="clearAllPromptHistory()">
+            🗑️ 전체 삭제
+          </button>
+          <button class="btn btn-outline" onclick="closePromptHistory()">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 캔버스 생성기 모달 -->
+    <div id="canvasGeneratorModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">📐 빈 캔버스 생성</h2>
+          <button class="modal-close" onclick="closeCanvasGenerator()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">종횡비 선택</label>
+            <div id="aspectRatioButtons" class="aspect-ratio-grid">
+              <!-- JavaScript로 렌더링 -->
+            </div>
+          </div>
+
+          <div class="form-group canvas-size-inputs">
+            <label class="form-label">크기</label>
+            <div class="size-input-row">
+              <div class="size-input-group">
+                <label>너비</label>
+                <input type="number" id="canvasWidth" class="form-input"
+                       value="1024" min="100" max="4096"
+                       onchange="setCanvasCustomSize(this.value, document.getElementById('canvasHeight').value)">
+              </div>
+              <span class="size-separator">×</span>
+              <div class="size-input-group">
+                <label>높이</label>
+                <input type="number" id="canvasHeight" class="form-input"
+                       value="1024" min="100" max="4096"
+                       onchange="setCanvasCustomSize(document.getElementById('canvasWidth').value, this.value)">
+              </div>
+              <span class="size-unit">px</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">기준 크기 (긴 쪽)</label>
+            <select id="canvasBaseSize" class="form-select" onchange="setCanvasBaseSize(this.value)">
+              <option value="512">512px</option>
+              <option value="768">768px</option>
+              <option value="1024" selected>1024px</option>
+              <option value="1536">1536px</option>
+              <option value="2048">2048px</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">배경색</label>
+            <div class="background-options">
+              <label class="background-option">
+                <input type="radio" name="bgType" value="white" checked
+                       onchange="setCanvasBackgroundType('white')">
+                <span class="bg-preview bg-white"></span>
+                <span>흰색</span>
+              </label>
+              <label class="background-option">
+                <input type="radio" name="bgType" value="transparent"
+                       onchange="setCanvasBackgroundType('transparent')">
+                <span class="bg-preview bg-transparent"></span>
+                <span>투명</span>
+              </label>
+              <label class="background-option">
+                <input type="radio" name="bgType" value="custom"
+                       onchange="setCanvasBackgroundType('custom')">
+                <input type="color" id="canvasBgColor" value="#FFFFFF"
+                       onchange="setCanvasBackgroundColor(this.value)">
+                <span>커스텀</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="canvas-preview-container">
+            <canvas id="canvasPreview" width="200" height="200"></canvas>
+            <div id="canvasInfo" class="canvas-info">1024 × 1024px</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeCanvasGenerator()">취소</button>
+          <button class="btn btn-primary" onclick="generateAndAttachCanvas()">
+            ✅ 캔버스 생성 및 첨부
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 템플릿 에디터 모달 -->
+    <div id="templateEditorModal" class="modal-overlay">
+      <div class="modal modal-xl">
+        <div class="modal-header">
+          <h2 class="modal-title">📝 템플릿 편집기</h2>
+          <button class="modal-close" onclick="closeTemplateEditor()">&times;</button>
+        </div>
+        <div class="modal-body template-editor-body">
+          <div class="editor-section">
+            <h3>기본 정보</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">템플릿 이름 <span class="required">*</span></label>
+                <input type="text" id="templateName" class="form-input" placeholder="예: 내 제품 사진 템플릿">
+              </div>
+              <div class="form-group form-group-sm">
+                <label class="form-label">아이콘</label>
+                <input type="text" id="templateIcon" class="form-input" value="🎨" maxlength="2">
+              </div>
+              <div class="form-group">
+                <label class="form-label">카테고리</label>
+                <select id="templateCategory" class="form-select">
+                  <option value="custom">커스텀</option>
+                  <option value="basic">기본</option>
+                  <option value="typography">타이포그래피</option>
+                  <option value="artwork">아트워크</option>
+                  <option value="professional">전문</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">설명</label>
+              <input type="text" id="templateDescription" class="form-input" placeholder="템플릿에 대한 간단한 설명">
+            </div>
+          </div>
+
+          <div class="editor-section">
+            <div class="editor-section-header">
+              <h3>필드</h3>
+              <button class="btn btn-primary btn-sm" onclick="addEditorField()">➕ 필드 추가</button>
+            </div>
+            <div id="templateFieldsEditor" class="template-fields-editor">
+              <div class="empty-fields-message">필드가 없습니다. "필드 추가" 버튼을 클릭하세요.</div>
+            </div>
+          </div>
+
+          <div class="editor-section">
+            <h3>프롬프트 템플릿</h3>
+            <p class="form-help">필드 값을 삽입하려면 {필드ID}를 사용하세요. 아래 버튼을 클릭하면 자동 삽입됩니다.</p>
+            <div class="field-placeholders" id="fieldPlaceholders">
+              <!-- JavaScript로 필드 버튼 렌더링 -->
+            </div>
+            <textarea id="templatePrompt" class="form-textarea" rows="6"
+                      placeholder="Create a {style} image of {subject}..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="importTemplate()">📥 가져오기</button>
+          <button class="btn btn-outline" onclick="closeTemplateEditor()">취소</button>
+          <button class="btn btn-primary" onclick="saveTemplate()">💾 저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ES Module 진입점 -->
+  <script type="module" src="src/js/main.js"></script>
+</body>
+</html>

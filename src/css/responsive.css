@@ -1,0 +1,59 @@
+/* ===== 반응형 ===== */
+@media (max-width: 1200px) {
+  .main-3col {
+    grid-template-columns: 1fr 1fr;
+  }
+  .main-3col > .panel:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1024px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+  .main-3col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    text-align: center;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .main {
+    padding: var(--spacing-md);
+  }
+
+  .main-3col {
+    padding: var(--spacing-md);
+  }
+
+  .template-tabs {
+    justify-content: center;
+  }
+
+  .action-bar {
+    flex-direction: column;
+  }
+
+  .work-mode-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .translate-toggle {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+    margin-top: var(--spacing-sm);
+  }
+}
